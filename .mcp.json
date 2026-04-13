@@ -1,0 +1,10 @@
+{
+  "project": "automatisation-comptable-fingec",
+  "description": "Integration configuration for Claude-style project orchestration.",
+  "integrations": {
+    "github": true,
+    "slack": false,
+    "jira": false,
+    "database": false
+  }
+}

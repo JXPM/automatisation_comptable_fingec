@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "read": ["src/**", "ui/**", "CLAUDE.md"],
+    "write": ["src/**", "ui/**", "README.md"]
+  },
+  "tooling": {
+    "model": "raptor-mini",
+    "validation": true
+  }
+}
