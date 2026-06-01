@@ -1,0 +1,46 @@
+# Stack fingec — se greffe sur le réseau Docker partagé (pharmaclick_web) pour
+# que le Caddy existant puisse joindre fingec-backend / fingec-frontend par leur nom.
+# Aucun port publié : seul Caddy expose 80/443.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: fingec-backend:latest
+    container_name: fingec-backend
+    restart: unless-stopped
+    environment:
+      BACKEND_DATA_DIR: /data
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+    volumes:
+      - fingec-data:/data
+    expose:
+      - "8000"
+    networks:
+      - web
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    image: fingec-frontend:latest
+    container_name: fingec-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    expose:
+      - "80"
+    networks:
+      - web
+
+# Réseau partagé avec pharmaclick (déjà créé par son compose).
+networks:
+  web:
+    external: true
+    name: pharmaclick_web
+
+volumes:
+  fingec-data:

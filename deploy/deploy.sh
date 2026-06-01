@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Déploiement / mise à jour de Fingec sur le VPS.
-# À lancer depuis la racine du dépôt cloné sur le serveur (ex: /opt/fingec).
+# Déploiement / mise à jour de fingec sur le VPS (stack Docker, derrière le Caddy
+# partagé de pharmaclick). À lancer depuis la racine du projet sur le serveur.
 #
 #   cd /opt/fingec && ./deploy/deploy.sh
 #
@@ -9,22 +9,18 @@ set -euo pipefail
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$APP_DIR"
 
-echo "==> Récupération du code"
-git pull --ff-only
+if [ ! -f .env ]; then
+  echo "ERREUR : .env manquant. Copie .env.example vers .env et renseigne ADMIN_TOKEN." >&2
+  exit 1
+fi
 
-echo "==> Backend : venv + dépendances"
-[ -d .venv ] || python3 -m venv .venv
-./.venv/bin/pip install --upgrade pip >/dev/null
-./.venv/bin/pip install -r backend/requirements.txt
+echo "==> Build + (re)démarrage des conteneurs fingec"
+docker compose up -d --build
 
-echo "==> Frontend : build (VITE_API_URL vide = même origine que l'API)"
-cd frontend
-npm ci
-VITE_API_URL="" npm run build
-cd "$APP_DIR"
+echo "==> Rechargement de Caddy (prise en compte du Caddyfile)"
+docker exec pharmaclick-caddy caddy reload --config /etc/caddy/Caddyfile \
+  || echo "(!) Recharge Caddy ignorée — vérifie que le bloc fingec est bien dans /opt/pharmaclick/Caddyfile"
 
-echo "==> Redémarrage des services"
-sudo systemctl restart fingec-api
-sudo nginx -t && sudo systemctl reload nginx
-
-echo "==> Terminé. Vérifie : systemctl status fingec-api"
+echo "==> État"
+docker compose ps
+echo "Terminé. Logs backend : docker logs -f fingec-backend"

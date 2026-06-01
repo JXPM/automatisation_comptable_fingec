@@ -1,0 +1,25 @@
+# Bloc à AJOUTER au Caddyfile existant (/opt/pharmaclick/Caddyfile), puis recharger
+# le conteneur Caddy :  docker exec pharmaclick-caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# Caddy obtient le certificat HTTPS automatiquement (le DNS de fingec.cagylshop.com
+# doit déjà pointer vers l'IP du VPS).
+# Remplacer le sous-domaine si besoin.
+
+fingec.cagylshop.com {
+    encode gzip zstd
+
+    # API → backend fingec (résolu par le DNS Docker sur le réseau partagé)
+    handle /process*  { reverse_proxy fingec-backend:8000 }
+    handle /download* { reverse_proxy fingec-backend:8000 }
+    handle /logs*     { reverse_proxy fingec-backend:8000 }
+
+    # Tout le reste → frontend (SPA servi par nginx)
+    handle {
+        reverse_proxy fingec-frontend:80
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}

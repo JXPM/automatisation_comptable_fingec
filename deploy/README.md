@@ -1,92 +1,81 @@
-# Déploiement sur VPS (Hostinger)
+# Déploiement sur VPS (Hostinger) — stack Docker derrière Caddy
 
-Cohabite avec un site existant : on ajoute un sous-domaine, un service `uvicorn`
-local et un reverse-proxy nginx. Le site existant n'est pas touché.
+Le VPS héberge déjà **pharmaclick** : conteneurs Docker (`backend`, `frontend`,
+`caddy`) sur le réseau `pharmaclick_web`, avec **Caddy** qui détient les ports
+80/443 et gère le HTTPS (Let's Encrypt) automatiquement.
 
-Frontend et API sont servis sur le **même sous-domaine** → pas de CORS.
+fingec se greffe sur ce même schéma — **sans toucher à pharmaclick** :
+- deux conteneurs `fingec-backend` (uvicorn) + `fingec-frontend` (nginx statique),
+- branchés sur le réseau **partagé** `pharmaclick_web`,
+- exposés via un **nouveau bloc de site** dans le Caddyfile existant.
 
-## Pré-requis sur le VPS
+Frontend + API sont sur le même sous-domaine → pas de CORS.
 
-- nginx installé (`nginx -v`)
-- Python 3.10+ (`python3 --version`)
-- Node 20+ (`node -v`) — pour builder le frontend
-- Un sous-domaine pointant vers l'IP du VPS (enregistrement DNS `A`),
-  ex. `fingec.tondomaine.com`
+## Pré-requis
 
-## 1. Récupérer le code
+- DNS : un enregistrement **A** `fingec.cagylshop.com` → IP du VPS (sinon Caddy ne
+  pourra pas obtenir le certificat HTTPS).
+- Docker + le réseau `pharmaclick_web` déjà présents (c'est le cas).
+
+## 1. Mettre le code sur le serveur
+
+Depuis ta machine (rsync, exclut node_modules/.git/data) :
 
 ```bash
-sudo mkdir -p /opt/fingec && sudo chown $USER /opt/fingec
-git clone <URL_DU_DEPOT> /opt/fingec
-cd /opt/fingec
-mkdir -p data            # données persistantes (logs.json, exports)
+rsync -az --delete \
+  --exclude .git --exclude node_modules --exclude frontend/dist \
+  --exclude .venv --exclude tmp_upload --exclude output --exclude logs.json \
+  -e "ssh -i ~/.ssh/fingec_deploy" \
+  ./ root@srv1713887.hstgr.cloud:/opt/fingec/
 ```
 
 ## 2. Configurer les secrets
 
 ```bash
-cp deploy/.env.example backend/.env
-openssl rand -hex 32      # copier le résultat dans ADMIN_TOKEN
-nano backend/.env         # remplir ADMIN_TOKEN + FRONTEND_ORIGINS (ton sous-domaine)
+ssh -i ~/.ssh/fingec_deploy root@srv1713887.hstgr.cloud
+cd /opt/fingec
+cp .env.example .env
+openssl rand -hex 32        # → coller dans ADMIN_TOKEN
+nano .env                   # ADMIN_TOKEN + FRONTEND_ORIGINS
 ```
 
-## 3. Premier build + dépendances
+## 3. Ajouter le bloc Caddy
+
+Ajouter le contenu de `deploy/Caddyfile.fingec.snippet` à la fin de
+`/opt/pharmaclick/Caddyfile` (faire une sauvegarde avant) :
 
 ```bash
-./deploy/deploy.sh        # crée le venv, installe, build le frontend, (re)démarre
+cp /opt/pharmaclick/Caddyfile /opt/pharmaclick/Caddyfile.bak
+cat /opt/fingec/deploy/Caddyfile.fingec.snippet >> /opt/pharmaclick/Caddyfile
 ```
 
-> Au tout premier déploiement, le service systemd et nginx ne sont pas encore
-> installés : fais d'abord les étapes 4 et 5, puis relance `./deploy/deploy.sh`.
-
-## 4. Service systemd (backend)
+## 4. Build + démarrage
 
 ```bash
-# Crée l'utilisateur de service si besoin :
-sudo useradd --system --no-create-home --shell /usr/sbin/nologin fingec || true
-sudo chown -R fingec:fingec /opt/fingec/data
-
-sudo cp deploy/fingec-api.service /etc/systemd/system/fingec-api.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now fingec-api
-systemctl status fingec-api      # doit être "active (running)"
+cd /opt/fingec
+./deploy/deploy.sh
 ```
 
-Adapter `User=` / chemins dans le `.service` si tu n'utilises pas `/opt/fingec`
-ou l'utilisateur `fingec`.
+Le script build les images, démarre les conteneurs et recharge Caddy.
 
-## 5. nginx (reverse-proxy + frontend)
+## 5. Vérification
 
 ```bash
-# Remplace fingec.example.com par ton sous-domaine dans le fichier :
-sudo cp deploy/nginx-fingec.conf /etc/nginx/sites-available/fingec.conf
-sudo nano /etc/nginx/sites-available/fingec.conf
-sudo ln -s /etc/nginx/sites-available/fingec.conf /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+curl -I https://fingec.cagylshop.com           # 200 + HTML du SPA
+docker logs -f fingec-backend                   # logs API
+docker exec fingec-backend wget -qO- localhost:8000/logs   # API interne OK
 ```
 
-## 6. HTTPS (Let's Encrypt)
+## Mises à jour
 
-```bash
-sudo certbot --nginx -d fingec.tondomaine.com
-```
+Refaire l'étape 1 (rsync) puis `./deploy/deploy.sh`.
 
-certbot ajoute automatiquement le bloc `listen 443 ssl` et redirige le HTTP.
+## Dépannage
 
-## Mises à jour ultérieures
-
-```bash
-cd /opt/fingec && ./deploy/deploy.sh
-```
-
-## Vérifs / dépannage
-
-```bash
-journalctl -u fingec-api -f           # logs du backend
-curl -s http://127.0.0.1:8001/logs    # l'API répond en local
-sudo tail -f /var/log/nginx/error.log # erreurs proxy
-```
-
-- `502 Bad Gateway` → le service `fingec-api` est down (`systemctl status fingec-api`).
-- Upload refusé > 50 Mo → `client_max_body_size` (nginx) et `MAX_UPLOAD_BYTES` (backend).
-- `503` sur suppression des logs → `ADMIN_TOKEN` non défini dans `backend/.env`.
+- `502` sur le sous-domaine → un conteneur fingec est down (`docker compose ps`),
+  ou le nom dans le Caddyfile ne correspond pas (`fingec-backend` / `fingec-frontend`).
+- Certificat HTTPS qui n'arrive pas → le DNS `fingec.cagylshop.com` ne pointe pas
+  (encore) vers le VPS. Vérifier avec `dig +short fingec.cagylshop.com`.
+- `503` à l'effacement des logs → `ADMIN_TOKEN` non défini dans `.env`.
+- **pharmaclick n'est jamais modifié** sauf l'ajout du bloc dans son Caddyfile
+  (sauvegardé en `.bak`).
