@@ -1,0 +1,94 @@
+name: Deploy to VPS
+
+# CD : sur push main, on teste, puis on rsync le code vers le VPS et on
+# rebuild les conteneurs Docker. La clé SSH de déploiement est dans le secret
+# SSH_PRIVATE_KEY. Secrets requis : SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, DEPLOY_PATH.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Test, rsync & rebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Gate : les tests backend doivent passer avant tout déploiement ──
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Backend tests
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+          pytest -q
+
+      # ── Déploiement ──
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Rsync code to VPS
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          rsync -az --delete \
+            --exclude '.git' --exclude 'node_modules' --exclude 'frontend/dist' \
+            --exclude '.venv' --exclude 'tmp_upload' --exclude 'output' \
+            --exclude 'logs.json' --exclude '.env' --exclude '.pytest_cache' \
+            --exclude '__pycache__' \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      - name: Build & restart containers
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh "$SSH_USER@$SSH_HOST" bash -s "$DEPLOY_PATH" <<'EOF'
+            set -euo pipefail
+            DEPLOY_PATH="$1"
+            cd "$DEPLOY_PATH"
+            docker compose up -d --build
+            docker image prune -f
+          EOF
+
+      - name: Verify backend healthy
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh "$SSH_USER@$SSH_HOST" bash <<'EOF'
+            set -euo pipefail
+            for i in $(seq 1 30); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' fingec-backend 2>/dev/null || echo none)
+              if [ "$status" = "healthy" ]; then echo "fingec-backend healthy"; exit 0; fi
+              sleep 2
+            done
+            echo "fingec-backend pas healthy après 60s"
+            docker logs --tail=50 fingec-backend
+            exit 1
+          EOF
