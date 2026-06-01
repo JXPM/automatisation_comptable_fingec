@@ -6,3 +6,17 @@ __pycache__/
 *.xlsx
 *.csv
 .env
+
+# Application data
+logs.json
+backend/tmp_upload/
+backend/output/
+
+# Local agent state / tooling (non versionné)
+.codex
+.codex/
+.claude/
+
+# Frontend build
+frontend/dist/
+node_modules/

@@ -87,7 +87,6 @@ def build_output(df: pd.DataFrame) -> pd.DataFrame:
     dates = pd.to_datetime(df["date"], errors="coerce")
 
     out = pd.DataFrame()
-    # Date sans heure (date pure)
     out["date"] = dates.dt.date
 
     numeric = {
@@ -204,7 +203,9 @@ def detect_anomalies(raw: pd.DataFrame, out: pd.DataFrame, country: str) -> list
                     f"Ratio TVA/HT attendu : {VAT_RATE:.0%}. Écart détecté sur {len(rows)} ligne(s)."
                 ))
 
-    # 6. Valeurs aberrantes (z-score > 3) sur net_sales et total_settlement
+    # 6. Valeurs aberrantes sur net_sales et total_settlement.
+    # MAD (median absolute deviation) est robuste: l'outlier ne fausse pas le seuil.
+    # Fallback en std de population (ddof=0) quand MAD=0 (ex. 9 valeurs identiques + 1 extrême).
     COL_LABELS = {
         "net_sales": "Ventes nettes",
         "total_settlement_amount": "Total settlement",
@@ -215,19 +216,30 @@ def detect_anomalies(raw: pd.DataFrame, out: pd.DataFrame, country: str) -> list
         series = raw[col].dropna()
         if len(series) < 4:
             continue
-        mean, std = series.mean(), series.std()
-        if std == 0:
-            continue
-        z = ((raw[col] - mean) / std).abs()
-        bad = z > OUTLIER_ZSCORE
+        median = series.median()
+        mad = (series - median).abs().median()
+        if np.isfinite(mad) and mad > 0:
+            z = 0.6745 * (raw[col] - median).abs() / mad
+            bad = z > 3.5
+            center = median
+        else:
+            mean = series.mean()
+            std = series.std(ddof=0)
+            if not np.isfinite(std) or np.isclose(std, 0):
+                continue
+            z = (raw[col] - mean).abs() / std
+            bad = z >= OUTLIER_ZSCORE
+            center = mean
         if bad.any():
             rows = bad[bad & raw[col].notna()].index.tolist()
+            if not rows:
+                continue
             col_label = COL_LABELS.get(col, col)
             anomalies.append(_anomaly(
                 "warning", "OUTLIER",
                 f"Montant inhabituel — {col_label}",
                 rows,
-                f"Montant très éloigné de la moyenne ({mean:,.2f}) sur la colonne « {col_label} »."
+                f"Montant très éloigné de la valeur centrale ({center:,.2f}) sur la colonne « {col_label} »."
             ))
 
     # 7. Doublons (même date + même total_settlement_amount)
@@ -263,7 +275,6 @@ def validate(out: pd.DataFrame, anomalies: list[dict]) -> dict:
     report: dict = {
         "rows": len(out),
         "missing_values": int(out.isna().sum().sum()),
-        "negative_values": int((out.select_dtypes(include=["number"]) < 0).sum().sum()),
         "anomaly_count": len(anomalies),
         "errors": sum(1 for a in anomalies if a["severity"] == "error"),
         "warnings": sum(1 for a in anomalies if a["severity"] == "warning"),

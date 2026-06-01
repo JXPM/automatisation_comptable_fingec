@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { B } from "../theme";
 
 type RowSeverity = "error" | "warning" | null;
 
@@ -58,13 +59,15 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
 
   const isFiltering = filtered && highlightedRows.length > 0;
 
+  type Row = Record<string, string | number> & { _i: number };
+
   // Base : toutes les lignes avec leur index d'origine
-  let working = rows.map((r, i) => ({ ...r, _i: i }));
+  let working: Row[] = rows.map((r, i) => ({ ...r, _i: i }));
 
   // Si filtre actif : lignes concernées en tête, reste dessous
   if (isFiltering) {
-    const affected = working.filter(r => highlightedRows.includes(r._i as number));
-    const rest = working.filter(r => !highlightedRows.includes(r._i as number));
+    const affected = working.filter(r => highlightedRows.includes(r._i));
+    const rest = working.filter(r => !highlightedRows.includes(r._i));
     working = [...affected, ...rest];
   }
 
@@ -116,8 +119,8 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
               onClick={() => setPageSize(n)}
               style={{
                 padding: "4px 10px", borderRadius: 6, fontSize: 12, cursor: "pointer",
-                border: `1px solid ${pageSize === n ? "#7d1c34" : "#e8e8ee"}`,
-                background: pageSize === n ? "#7d1c34" : "white",
+                border: `1px solid ${pageSize === n ? B : "#e8e8ee"}`,
+                background: pageSize === n ? B : "white",
                 color: pageSize === n ? "white" : "#374151",
                 fontWeight: pageSize === n ? 600 : 400,
                 transition: "all 0.15s",
@@ -130,8 +133,8 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
             onClick={() => setPageSize(rows.length)}
             style={{
               padding: "4px 10px", borderRadius: 6, fontSize: 12, cursor: "pointer",
-              border: `1px solid ${pageSize === rows.length ? "#7d1c34" : "#e8e8ee"}`,
-              background: pageSize === rows.length ? "#7d1c34" : "white",
+              border: `1px solid ${pageSize === rows.length ? B : "#e8e8ee"}`,
+              background: pageSize === rows.length ? B : "white",
               color: pageSize === rows.length ? "white" : "#374151",
               fontWeight: pageSize === rows.length ? 600 : 400,
               transition: "all 0.15s",
@@ -172,7 +175,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
                     style={{
                       padding: "10px 16px", textAlign: "left",
                       fontSize: 11, fontWeight: 500,
-                      color: active ? "#7d1c34" : "#6b7280",
+                      color: active ? B : "#6b7280",
                       textTransform: "uppercase", letterSpacing: "0.8px",
                       cursor: "pointer", userSelect: "none", whiteSpace: "nowrap",
                     }}
@@ -188,7 +191,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
           </thead>
           <tbody>
             {displayed.map((row) => {
-              const idx = row._i as number;
+              const idx = row._i;
               const isHighlighted = isFiltering && highlightedRows.includes(idx);
               // Coloration SEULEMENT si filtre actif ET ligne concernée
               // La couleur suit la sévérité de l'anomalie sélectionnée, pas la pire globale
@@ -211,7 +214,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
                       key={col.key}
                       style={{
                         padding: "9px 16px",
-                        color: sty ? sty.color : col.key === "date" ? "#7d1c34" : "#1a1a2e",
+                        color: sty ? sty.color : col.key === "date" ? B : "#1a1a2e",
                         fontWeight: sty || col.key === "date" ? 500 : 400,
                         fontVariantNumeric: "tabular-nums",
                         whiteSpace: "nowrap",
@@ -243,7 +246,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-      stroke={active ? "#7d1c34" : "#d1d5db"} strokeWidth="2.5"
+      stroke={active ? B : "#d1d5db"} strokeWidth="2.5"
       strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1 }}>
       {!active || dir === null ? (
         <><polyline points="12 4 12 20"/><polyline points="6 10 12 4 18 10"/><polyline points="6 14 12 20 18 14"/></>

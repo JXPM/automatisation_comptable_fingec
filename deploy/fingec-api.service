@@ -1,0 +1,38 @@
+# systemd unit — backend FastAPI servi par uvicorn (écoute uniquement en local,
+# nginx fait le reverse-proxy public).
+#
+# Installation :
+#   sudo cp deploy/fingec-api.service /etc/systemd/system/fingec-api.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now fingec-api
+#
+# Adapter User/paths si l'app n'est pas dans /opt/fingec.
+
+[Unit]
+Description=Fingec API (FastAPI / uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=fingec
+Group=fingec
+WorkingDirectory=/opt/fingec/backend
+
+# Données persistantes (logs.json, uploads temporaires, exports) hors du dépôt git.
+Environment="BACKEND_DATA_DIR=/opt/fingec/data"
+# Secrets (ADMIN_TOKEN, FRONTEND_ORIGINS) — fichier NON commité, créé à la main.
+EnvironmentFile=-/opt/fingec/backend/.env
+
+# 1 worker : l'écriture de logs.json n'est pas concurrente-safe.
+ExecStart=/opt/fingec/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8001 --workers 1
+
+Restart=on-failure
+RestartSec=3
+
+# Durcissement léger.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
