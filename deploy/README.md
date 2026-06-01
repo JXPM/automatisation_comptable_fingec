@@ -13,7 +13,7 @@ Frontend + API sont sur le même sous-domaine → pas de CORS.
 
 ## Pré-requis
 
-- DNS : un enregistrement **A** `fingec.cagylshop.com` → IP du VPS (sinon Caddy ne
+- DNS : un enregistrement **A** `app.fingec.fr` → IP du VPS (sinon Caddy ne
   pourra pas obtenir le certificat HTTPS).
 - Docker + le réseau `pharmaclick_web` déjà présents (c'est le cas).
 
@@ -61,7 +61,7 @@ Le script build les images, démarre les conteneurs et recharge Caddy.
 ## 5. Vérification
 
 ```bash
-curl -I https://fingec.cagylshop.com           # 200 + HTML du SPA
+curl -I https://app.fingec.fr           # 200 + HTML du SPA
 docker logs -f fingec-backend                   # logs API
 docker exec fingec-backend wget -qO- localhost:8000/logs   # API interne OK
 ```
@@ -74,8 +74,8 @@ Refaire l'étape 1 (rsync) puis `./deploy/deploy.sh`.
 
 - `502` sur le sous-domaine → un conteneur fingec est down (`docker compose ps`),
   ou le nom dans le Caddyfile ne correspond pas (`fingec-backend` / `fingec-frontend`).
-- Certificat HTTPS qui n'arrive pas → le DNS `fingec.cagylshop.com` ne pointe pas
-  (encore) vers le VPS. Vérifier avec `dig +short fingec.cagylshop.com`.
+- Certificat HTTPS qui n'arrive pas → le DNS `app.fingec.fr` ne pointe pas
+  (encore) vers le VPS. Vérifier avec `dig +short app.fingec.fr`.
 - `503` à l'effacement des logs → `ADMIN_TOKEN` non défini dans `.env`.
 - **pharmaclick n'est jamais modifié** sauf l'ajout du bloc dans son Caddyfile
   (sauvegardé en `.bak`).
