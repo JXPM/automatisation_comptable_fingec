@@ -9,9 +9,10 @@ app.fingec.fr {
     encode gzip zstd
 
     # API → backend fingec (résolu par le DNS Docker sur le réseau partagé)
-    handle /process*  { reverse_proxy fingec-backend:8000 }
-    handle /download* { reverse_proxy fingec-backend:8000 }
-    handle /logs*     { reverse_proxy fingec-backend:8000 }
+    @api path /process* /download* /logs*
+    handle @api {
+        reverse_proxy fingec-backend:8000
+    }
 
     # Tout le reste → frontend (SPA servi par nginx)
     handle {
