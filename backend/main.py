@@ -306,7 +306,14 @@ async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_curren
     # On retire aussi l'en-tête Authorization (jeton du dashboard, pas pour n8n) et
     # les en-têtes conditionnels : sinon n8n peut répondre 304 (corps vide), que le
     # front interprète comme une erreur.
-    _DROP = _HOP_BY_HOP | {"authorization", "if-none-match", "if-modified-since"}
+    # On retire enfin Accept-Encoding du navigateur : il annonce br/zstd que httpx ne
+    # sait pas décoder (codecs non installés). httpx renverrait alors un corps encore
+    # compressé tandis qu'on supprime l'en-tête content-encoding -> JSON illisible côté
+    # front. En le retirant, httpx négocie lui-même (gzip/deflate) et décompresse, donc
+    # upstream.content est toujours en clair.
+    _DROP = _HOP_BY_HOP | {
+        "authorization", "if-none-match", "if-modified-since", "accept-encoding",
+    }
     fwd_headers = {
         k: v for k, v in request.headers.items() if k.lower() not in _DROP
     }
