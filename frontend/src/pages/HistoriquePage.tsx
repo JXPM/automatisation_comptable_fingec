@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import StatusBadge from "../components/StatusBadge";
-import UnderDevelopment from "../components/UnderDevelopment";
 import { useToast } from "../components/Toast";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
@@ -84,7 +83,6 @@ export default function HistoriquePage() {
   }, {});
 
   return (
-    <UnderDevelopment hint="L'historique consolidera les relances mois par mois et permettra de relancer les dossiers passés en quelques clics.">
     <div style={{ padding: "36px 40px" }}>
 
       {/* Header */}
@@ -345,6 +343,5 @@ export default function HistoriquePage() {
         onCancel={() => setModal(null)}
       />
     </div>
-    </UnderDevelopment>
   );
 }

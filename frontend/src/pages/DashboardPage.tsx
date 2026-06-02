@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import StatusBadge from "../components/StatusBadge";
-import UnderDevelopment from "../components/UnderDevelopment";
 import { B } from "../theme";
 import { avatarColor, initials } from "../utils/clients";
 import { authFetch } from "../utils/api";
@@ -112,7 +111,6 @@ export default function DashboardPage() {
   ];
 
   return (
-    <UnderDevelopment hint="Le tableau de bord centralisera bientôt vos indicateurs cabinet : taux de collecte, relances en cours, dossiers à finaliser.">
     <div style={{ padding: "28px 44px 44px" }}>
 
       {/* ── HERO with animated gradient ── */}
@@ -573,6 +571,5 @@ export default function DashboardPage() {
         </motion.div>
       </div>
     </div>
-    </UnderDevelopment>
   );
 }

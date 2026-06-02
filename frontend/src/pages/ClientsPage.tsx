@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import StatusBadge from "../components/StatusBadge";
-import UnderDevelopment from "../components/UnderDevelopment";
 import { useToast } from "../components/Toast";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
@@ -98,7 +97,6 @@ export default function ClientsPage() {
   };
 
   return (
-    <UnderDevelopment hint="La gestion clients permettra de suivre les relances, automatiser les rappels et marquer les documents reçus.">
     <div style={{ padding: "36px 40px" }}>
 
       {/* Header */}
@@ -362,6 +360,5 @@ export default function ClientsPage() {
         onCancel={() => setModal(null)}
       />
     </div>
-    </UnderDevelopment>
   );
 }
