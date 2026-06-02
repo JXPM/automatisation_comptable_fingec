@@ -173,7 +173,7 @@
       "parameters": {
         "sendTo": "={{ $('Get client by email').item.json.Email }}",
         "subject": "Relance - Transmission de vos documents comptables",
-        "message": "=<div style=\"font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;\">  <p>Bonjour {{ $json.nom }},</p>  <p> Sauf erreur de notre part, nous n’avons pas encore reçu vos documents comptables pour la période en cours. </p>  <p> Afin de pouvoir poursuivre le traitement de votre dossier, nous vous prions de bien vouloir nous les transmettre dès que possible. </p>  <p> Nous restons à votre disposition pour toute information complémentaire. </p>  <p>Cordialement,</p>  <table style=\"margin-top:10px;border-top:1px solid #7d1c34;padding-top:10px;font-family:'Segoe UI',Arial,sans-serif;\"> <tr>  <td style=\"padding-right:15px;\"> <img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\"> </td>  <td> <span style=\"font-size:18px;font-weight:900;color:#7d1c34;\"> Christian NKATTA </span> <br> <span style=\"font-size:14px;color:#555;color:#7d1c34; font-weight:400;\"> 03 00 00 00 00 </span>  <br>  <span style=\"font-size:12px;color:#666;\"> 12 rue Exemple, 67000 Strasbourg </span>   <br>  <span style=\"font-size:13px;color:#444;\"> Cabinet membre de l’Ordre des Experts-Comptables d’Alsace </span>  <br>  <span style=\"font-size:12px;color:#7d1c34;\"> contact@fingec.fr / www.fingec.fr </span>  </td>  </tr> </table>  <hr style=\"border:none;border-top:1px solid #eee;margin-top:20px;\">  <p style=\"font-size:11px;color:#888;\"> Ce message a été généré automatiquement par le système du cabinet. </p>  </div>",
+        "message": "=<div style=\"font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;\">  <p>Bonjour {{ $json.Nom }},</p>  <p> Sauf erreur de notre part, nous n’avons pas encore reçu vos documents comptables pour la période en cours. </p>  <p> Afin de pouvoir poursuivre le traitement de votre dossier, nous vous prions de bien vouloir nous les transmettre dès que possible. </p>  <p> Nous restons à votre disposition pour toute information complémentaire. </p>  <p>Cordialement,</p>  <table style=\"margin-top:10px;border-top:1px solid #7d1c34;padding-top:10px;font-family:'Segoe UI',Arial,sans-serif;\"> <tr>  <td style=\"padding-right:15px;\"> <img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\"> </td>  <td> <span style=\"font-size:18px;font-weight:900;color:#7d1c34;\"> Christian NKATTA </span> <br> <span style=\"font-size:14px;color:#555;color:#7d1c34; font-weight:400;\"> 03 00 00 00 00 </span>  <br>  <span style=\"font-size:12px;color:#666;\"> 12 rue Exemple, 67000 Strasbourg </span>   <br>  <span style=\"font-size:13px;color:#444;\"> Cabinet membre de l’Ordre des Experts-Comptables d’Alsace </span>  <br>  <span style=\"font-size:12px;color:#7d1c34;\"> contact@fingec.fr / www.fingec.fr </span>  </td>  </tr> </table>  <hr style=\"border:none;border-top:1px solid #eee;margin-top:20px;\">  <p style=\"font-size:11px;color:#888;\"> Ce message a été généré automatiquement par le système du cabinet. </p>  </div>",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
@@ -420,7 +420,7 @@
           "value": {
             "Email": "={{ $('Get client by email').item.json.Email }}",
             "Statut": "Relancé",
-            "Nb_relances": "={{ $('Get client by email').item.json.Nb_relances + 1 }}",
+            "Nb_relances": "={{ Number($('Get client by email').item.json.Nb_relances) + 1 }}",
             "Date_derniere_relance": "={{ new Date().toLocaleDateString('fr-FR') }}"
           },
           "matchingColumns": [
@@ -1066,7 +1066,7 @@
       "parameters": {
         "sendTo": "={{ $json.body.email }}",
         "subject": "=Rappel documents du {{ $json.body.mois }}",
-        "message": "<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#333\">   <p>Bonjour {{ $json.body.nom }},</p>   <p>Nous n'avons pas reçu vos documents comptables    pour le mois de <strong>{{ $json.body.mois }}</strong>.</p>   <p>Merci de bien vouloir les déposer sur Dext dès que possible.</p>   <p>Cordialement,<br>Cabinet Fingec</p> </div>",
+        "message": "=<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#333\">   <p>Bonjour {{ $json.body.nom }},</p>   <p>Nous n'avons pas reçu vos documents comptables    pour le mois de <strong>{{ $json.body.mois }}</strong>.</p>   <p>Merci de bien vouloir les déposer sur Dext dès que possible.</p>   <p>Cordialement,<br>Cabinet Fingec</p> </div>",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
