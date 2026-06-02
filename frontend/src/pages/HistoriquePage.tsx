@@ -5,6 +5,7 @@ import UnderDevelopment from "../components/UnderDevelopment";
 import { useToast } from "../components/Toast";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
+import { authFetch } from "../utils/api";
 
 interface HistoEntry {
   Mois: string;
@@ -28,7 +29,7 @@ export default function HistoriquePage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/n8n/webhook/get-historique");
+      const res = await authFetch("/n8n/webhook/get-historique");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setHistorique(Array.isArray(data) ? data : []);
@@ -61,7 +62,7 @@ export default function HistoriquePage() {
     setModal(null);
     setLoadingKey(email + mois);
     try {
-      const res = await fetch("/n8n/webhook/relance-historique", {
+      const res = await authFetch("/n8n/webhook/relance-historique", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, nom, mois }),
       });

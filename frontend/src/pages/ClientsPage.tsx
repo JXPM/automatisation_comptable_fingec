@@ -5,6 +5,7 @@ import UnderDevelopment from "../components/UnderDevelopment";
 import { useToast } from "../components/Toast";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
+import { authFetch } from "../utils/api";
 
 interface Client {
   Nom: string;
@@ -37,7 +38,7 @@ export default function ClientsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/n8n/webhook/get-clients");
+      const res = await authFetch("/n8n/webhook/get-clients");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);
@@ -59,7 +60,7 @@ export default function ClientsPage() {
   const relancer = async (email: string, nom: string) => {
     setLoadingKey(email);
     try {
-      const res = await fetch("/n8n/webhook/relance-client", {
+      const res = await authFetch("/n8n/webhook/relance-client", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
@@ -76,7 +77,7 @@ export default function ClientsPage() {
   const marquerRecu = async (email: string, nom: string) => {
     setLoadingKey(email + "_r");
     try {
-      const res = await fetch("/n8n/webhook/marquer-recu", {
+      const res = await authFetch("/n8n/webhook/marquer-recu", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });

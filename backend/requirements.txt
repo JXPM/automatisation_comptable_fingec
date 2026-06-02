@@ -3,3 +3,7 @@ openpyxl
 fastapi
 uvicorn[standard]
 python-multipart
+pyjwt
+bcrypt
+httpx
+pydantic[email]

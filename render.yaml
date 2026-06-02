@@ -13,7 +13,7 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /logs
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
@@ -21,3 +21,11 @@ services:
         value: /opt/render/project/src/backend
       - key: FRONTEND_ORIGINS
         sync: false   # à renseigner dans le dashboard une fois Vercel déployé
+      - key: AUTH_SECRET
+        generateValue: true   # secret de signature JWT (généré par Render)
+      - key: ADMIN_EMAIL
+        sync: false   # admin initial (créé au 1er démarrage, base vide)
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: N8N_BASE_URL
+        sync: false   # URL du service n8n (laisser vide si non utilisé)

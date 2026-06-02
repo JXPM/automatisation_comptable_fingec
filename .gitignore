@@ -9,6 +9,8 @@ __pycache__/
 
 # Application data
 logs.json
+app.db
+*.db
 backend/tmp_upload/
 backend/output/
 

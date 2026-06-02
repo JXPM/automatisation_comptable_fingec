@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { B } from "../theme";
-import { API_URL } from "../utils/api";
+import { authFetch, downloadFile } from "../utils/api";
+import { useToast } from "../components/Toast";
 
 interface LogEntry {
   id: string;
@@ -37,6 +38,7 @@ function fmtDate(iso: string) {
 }
 
 export default function LogsPage() {
+  const { showToast } = useToast();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
@@ -45,7 +47,7 @@ export default function LogsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/logs`);
+      const res = await authFetch(`/logs`);
       const data = await res.json();
       setLogs(Array.isArray(data) ? data : []);
     } catch {
@@ -58,23 +60,27 @@ export default function LogsPage() {
   useEffect(() => { load(); }, []);
 
   const clearLogs = async () => {
-    const token = window.prompt("Jeton d'administration requis pour effacer les logs :");
-    if (!token) { setConfirmClear(false); return; }
     setClearing(true);
     try {
-      const res = await fetch(`${API_URL}/logs`, {
-        method: "DELETE",
-        headers: { "X-Admin-Token": token },
-      });
+      const res = await authFetch(`/logs`, { method: "DELETE" });
       if (!res.ok) {
         const detail = await res.json().catch(() => null);
-        window.alert(detail?.detail ?? "Échec de l'effacement des logs.");
+        showToast(detail?.detail ?? "Échec de l'effacement des logs.", "error");
         return;
       }
       setLogs([]);
+      showToast("Logs effacés.", "success");
     } finally {
       setClearing(false);
       setConfirmClear(false);
+    }
+  };
+
+  const handleDownload = async (file: string) => {
+    try {
+      await downloadFile(file);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Échec du téléchargement.", "error");
     }
   };
 
@@ -274,17 +280,18 @@ export default function LogsPage() {
               {log.warnings > 0 ? log.warnings : "—"}
             </span>
 
-            <a
-              href={`${API_URL}/download/${log.output_file}`}
+            <button
+              onClick={() => handleDownload(log.output_file)}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 5,
                 fontSize: 12, fontWeight: 500, color: B,
-                textDecoration: "none",
+                background: "none", border: "none", padding: 0,
+                cursor: "pointer", fontFamily: "inherit", textAlign: "left",
               }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               {log.output_file.replace("output_", "")}
-            </a>
+            </button>
           </div>
         ))}
       </div>

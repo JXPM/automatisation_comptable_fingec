@@ -9,7 +9,9 @@ app.fingec.fr {
     encode gzip zstd
 
     # API → backend fingec (résolu par le DNS Docker sur le réseau partagé)
-    @api path /process* /download* /logs*
+    # /n8n* est volontairement relayé au backend : il vérifie le JWT avant de
+    # transmettre à n8n (n8n n'est jamais joignable sans authentification).
+    @api path /process* /download* /logs* /auth* /health* /n8n*
     handle @api {
         reverse_proxy fingec-backend:8000
     }
@@ -17,6 +19,31 @@ app.fingec.fr {
     # Tout le reste → frontend (SPA servi par nginx)
     handle {
         reverse_proxy fingec-frontend:80
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}
+
+# Éditeur n8n — sous-domaine dédié, réservé à l'édition des workflows.
+# Protégé par le compte propriétaire de n8n (créé au premier accès).
+# DNS requis : un enregistrement A n8n.fingec.fr → IP du VPS.
+n8n.fingec.fr {
+    encode gzip zstd
+
+    # On BLOQUE les webhooks sur ce sous-domaine : ils ne doivent être joignables
+    # que via le dashboard authentifié (app.fingec.fr/n8n/...). Sinon n'importe qui
+    # pourrait déclencher relances/e-mails sans être connecté.
+    @webhooks path /webhook* /webhook-test* /webhook-waiting*
+    handle @webhooks {
+        respond "Not found" 404
+    }
+
+    # Le reste (éditeur + API REST de n8n) → conteneur n8n interne.
+    handle {
+        reverse_proxy fingec-n8n:5678
     }
 
     log {

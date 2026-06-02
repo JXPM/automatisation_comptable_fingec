@@ -1,6 +1,18 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ReactNode } from "react";
+import { useAuth } from "../auth/AuthContext";
+import { initials } from "../utils/clients";
+
+const ADMIN_NAV = {
+  to: "/admin",
+  label: "Admin",
+  icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+};
 
 const NAV = [
   {
@@ -66,6 +78,9 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const navItems = user?.role === "admin" ? [...NAV, ADMIN_NAV] : NAV;
+  const displayName = user?.full_name || user?.email || "Utilisateur";
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -176,7 +191,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             Navigation
           </motion.div>
 
-          {NAV.map(({ to, label, icon }, i) => {
+          {navItems.map(({ to, label, icon }, i) => {
             const isActive = to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
             return (
               <motion.div
@@ -254,11 +269,13 @@ export default function Layout({ children }: { children: ReactNode }) {
             position: "relative", zIndex: 1,
           }}
         >
-          <motion.div
+          <motion.button
+            onClick={logout}
+            title="Se déconnecter"
             whileHover={{ y: -1, backgroundColor: "rgba(0,0,0,0.32)" }}
             transition={{ duration: 0.18, ease: EASE }}
             style={{
-              display: "flex", alignItems: "center", gap: 11,
+              display: "flex", alignItems: "center", gap: 11, width: "100%",
               padding: "11px 12px", borderRadius: 12,
               background: "rgba(0,0,0,0.25)",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -266,9 +283,11 @@ export default function Layout({ children }: { children: ReactNode }) {
               cursor: "pointer",
               position: "relative",
               overflow: "hidden",
+              textAlign: "left",
+              fontFamily: "inherit",
             }}
           >
-            {/* Avatar with shimmer */}
+            {/* Avatar — initiales de l'utilisateur connecté */}
             <div style={{
               width: 32, height: 32, borderRadius: 10, flexShrink: 0,
               background: "linear-gradient(135deg, #f5e6d3 0%, #e8c9a8 100%)",
@@ -278,25 +297,29 @@ export default function Layout({ children }: { children: ReactNode }) {
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 8px -2px rgba(0,0,0,0.4)",
               letterSpacing: "0.5px",
             }}>
-              CF
+              {initials(displayName)}
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.92)", fontWeight: 600, letterSpacing: "0.1px" }}>
-                Cabinet Fingec
+              <div style={{
+                fontSize: 12.5, color: "rgba(255,255,255,0.92)", fontWeight: 600, letterSpacing: "0.1px",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {displayName}
               </div>
               <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.42)", letterSpacing: "0.4px", marginTop: 2, textTransform: "uppercase" }}>
-                Espace de travail
+                {user?.role === "admin" ? "Administrateur" : "Se déconnecter"}
               </div>
             </div>
 
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
               style={{ flexShrink: 0 }}>
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
-          </motion.div>
+          </motion.button>
         </motion.div>
       </aside>
 

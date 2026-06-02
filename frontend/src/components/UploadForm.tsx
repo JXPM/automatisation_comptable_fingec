@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { ProcessResult } from "../pages/TraitementPage";
 import { B } from "../theme";
-import { API_URL } from "../utils/api";
+import { authFetch } from "../utils/api";
 
 type Props = {
   onResult: (data: ProcessResult, filename: string, country: string) => void;
@@ -42,7 +42,7 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
 
     onLoading(true);
     try {
-      const res = await fetch(`${API_URL}/process`, { method: "POST", body: formData });
+      const res = await authFetch(`/process`, { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Erreur de traitement");
       onResult(data, file.name, country);

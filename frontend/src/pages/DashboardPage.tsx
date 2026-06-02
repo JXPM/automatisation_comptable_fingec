@@ -4,6 +4,7 @@ import StatusBadge from "../components/StatusBadge";
 import UnderDevelopment from "../components/UnderDevelopment";
 import { B } from "../theme";
 import { avatarColor, initials } from "../utils/clients";
+import { authFetch } from "../utils/api";
 
 interface Client {
   Nom: string;
@@ -38,7 +39,7 @@ export default function DashboardPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/n8n/webhook/get-clients");
+      const res = await authFetch("/n8n/webhook/get-clients");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);

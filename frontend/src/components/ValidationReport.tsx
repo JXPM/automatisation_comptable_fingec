@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { Anomaly, ProcessResult } from "../pages/TraitementPage";
 import { B } from "../theme";
-import { API_URL } from "../utils/api";
+import { downloadFile } from "../utils/api";
+import { useToast } from "./Toast";
 
 type Props = {
   report: ProcessResult["report"];
@@ -14,6 +15,19 @@ type Props = {
 
 export default function ValidationReport({ report, output, filename, country, anomalies, preview }: Props) {
   const [exporting, setExporting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const { showToast } = useToast();
+
+  const handleExcel = async () => {
+    setDownloading(true);
+    try {
+      await downloadFile(output);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Échec du téléchargement.", "error");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const scoreColor =
     report.reliability_score >= 90 ? "#059669"
@@ -84,28 +98,34 @@ export default function ValidationReport({ report, output, filename, country, an
           </button>
 
           {/* Bouton Excel */}
-          <a
-            href={`${API_URL}/download/${output}`}
+          <button
+            onClick={handleExcel}
+            disabled={downloading}
             style={{
               display: "inline-flex", alignItems: "center", gap: 7,
               padding: "9px 18px", borderRadius: 10,
               border: "none",
               background: `linear-gradient(135deg, ${B} 0%, #9d2440 100%)`,
               fontSize: 13, fontWeight: 600, color: "white",
-              textDecoration: "none", fontFamily: "inherit",
+              cursor: downloading ? "default" : "pointer", fontFamily: "inherit",
+              opacity: downloading ? 0.7 : 1,
               boxShadow: "0 6px 16px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
               transition: "transform 0.15s var(--ease), box-shadow 0.2s var(--ease)",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(125,28,52,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; }}
+            onMouseEnter={(e) => { if (!downloading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(125,28,52,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"; }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Télécharger Excel
-          </a>
+            {downloading ? (
+              <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.5)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            )}
+            {downloading ? "Téléchargement…" : "Télécharger Excel"}
+          </button>
         </div>
       </div>
 

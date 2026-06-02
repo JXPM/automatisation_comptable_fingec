@@ -10,7 +10,7 @@ APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$APP_DIR"
 
 if [ ! -f .env ]; then
-  echo "ERREUR : .env manquant. Copie .env.example vers .env et renseigne ADMIN_TOKEN." >&2
+  echo "ERREUR : .env manquant. Copie .env.example vers .env et renseigne AUTH_SECRET / ADMIN_EMAIL / ADMIN_PASSWORD." >&2
   exit 1
 fi
 

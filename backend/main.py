@@ -1,15 +1,19 @@
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Header
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
+from pydantic import BaseModel, EmailStr
 from pathlib import Path
 from datetime import datetime
-import hmac
 import os
 import re
 import json
 import uuid
 
+import httpx
+
 from processor import load_file, clean_data, compute_vat, build_output, detect_anomalies, validate
+import auth
+from auth import get_current_user, require_admin
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 # DATA_DIR: répertoire racine pour uploads/outputs/logs.
@@ -24,11 +28,12 @@ ALLOWED_ORIGINS = [
 ]
 
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MiB
-# Jeton d'admin requis pour les actions destructrices (ex: vider les logs).
-# Derrière un reverse-proxy, on ne peut pas se fier à l'IP source : on exige donc
-# un secret partagé. Si non défini, la route est désactivée (fail-safe).
-ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "").strip()
 _SAFE_NAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+# URL interne du service n8n (résolu par le DNS Docker sur le réseau partagé).
+# Le frontend appelle /n8n/... → on relaie ici APRÈS vérification du JWT, pour que
+# n8n ne soit jamais joignable sans authentification.
+N8N_BASE_URL = os.environ.get("N8N_BASE_URL", "http://localhost:5678").rstrip("/")
 
 
 def _safe_filename(name: str | None) -> str:
@@ -62,6 +67,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def _startup() -> None:
+    auth.init_db()
+
 UPLOAD_DIR = DATA_DIR / "tmp_upload"
 OUTPUT_DIR = DATA_DIR / "output"
 LOGS_FILE  = DATA_DIR / "logs.json"
@@ -85,10 +95,111 @@ def _append_log(entry: dict) -> None:
     LOGS_FILE.write_text(json.dumps(logs, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+# ── Santé (public, utilisé par le healthcheck Docker) ────────────────────────
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
+# ── Authentification ─────────────────────────────────────────────────────────
+class LoginPayload(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class CreateUserPayload(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str = ""
+    role: str = "user"
+
+
+class UpdateUserPayload(BaseModel):
+    active: bool | None = None
+    role: str | None = None
+    password: str | None = None
+
+
+def _public_user(user: dict) -> dict:
+    return {k: user[k] for k in ("id", "email", "full_name", "role", "active", "created_at")}
+
+
+@app.post("/auth/login")
+async def login(payload: LoginPayload):
+    user = auth.get_user_by_email(payload.email)
+    if user is None or not auth.verify_password(payload.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="E-mail ou mot de passe incorrect.")
+    if not user["active"]:
+        raise HTTPException(status_code=403, detail="Compte désactivé.")
+    token = auth.create_access_token(user)
+    return {"access_token": token, "token_type": "bearer", "user": _public_user(user)}
+
+
+@app.get("/auth/me")
+async def me(user: dict = Depends(get_current_user)):
+    return _public_user(user)
+
+
+@app.get("/auth/users")
+async def get_users(_: dict = Depends(require_admin)):
+    return [_public_user(u) for u in auth.list_users()]
+
+
+@app.post("/auth/users", status_code=201)
+async def add_user(payload: CreateUserPayload, _: dict = Depends(require_admin)):
+    try:
+        user = auth.create_user(
+            email=payload.email,
+            password=payload.password,
+            full_name=payload.full_name,
+            role=payload.role,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _public_user(user)
+
+
+@app.patch("/auth/users/{user_id}")
+async def patch_user(user_id: int, payload: UpdateUserPayload, admin: dict = Depends(require_admin)):
+    target = auth.get_user_by_id(user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    # Empêche de se retirer à soi-même le dernier accès admin (verrouillage).
+    losing_admin = (target["role"] == "admin" and target["active"]) and (
+        payload.active is False or (payload.role is not None and payload.role != "admin")
+    )
+    if losing_admin and auth.count_active_admins(exclude_id=user_id) == 0:
+        raise HTTPException(status_code=400, detail="Impossible : c'est le dernier administrateur actif.")
+    try:
+        user = auth.update_user(
+            user_id, active=payload.active, role=payload.role, password=payload.password
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _public_user(user)
+
+
+@app.delete("/auth/users/{user_id}")
+async def remove_user(user_id: int, admin: dict = Depends(require_admin)):
+    target = auth.get_user_by_id(user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    if user_id == admin["id"]:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas supprimer votre propre compte.")
+    if target["role"] == "admin" and target["active"] and auth.count_active_admins(exclude_id=user_id) == 0:
+        raise HTTPException(status_code=400, detail="Impossible : c'est le dernier administrateur actif.")
+    try:
+        auth.delete_user(user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Utilisateur supprimé."}
+
+
 @app.post("/process")
 async def process_file(
     file: UploadFile = File(...),
     country: str = Form("France"),
+    user: dict = Depends(get_current_user),
 ):
     safe_name = _safe_filename(file.filename)
     if not safe_name.lower().endswith((".csv", ".xlsx", ".xls")):
@@ -151,7 +262,7 @@ async def process_file(
 
 
 @app.get("/download/{filename}")
-async def download(filename: str):
+async def download(filename: str, user: dict = Depends(get_current_user)):
     safe_name = _safe_filename(filename)
     file_path = _resolve_within(OUTPUT_DIR, safe_name)
     if not file_path.is_file():
@@ -164,21 +275,56 @@ async def download(filename: str):
 
 
 @app.get("/logs")
-async def get_logs(limit: int = 100):
+async def get_logs(limit: int = 100, user: dict = Depends(get_current_user)):
     limit = max(1, min(limit, 500))
     logs = _read_logs()
     return logs[:limit]
 
 
 @app.delete("/logs")
-async def clear_logs(x_admin_token: str | None = Header(default=None)):
-    if not ADMIN_TOKEN:
-        raise HTTPException(
-            status_code=503,
-            detail="Action désactivée : aucun ADMIN_TOKEN configuré côté serveur.",
-        )
-    # Comparaison à temps constant pour éviter les attaques temporelles.
-    if not x_admin_token or not hmac.compare_digest(x_admin_token, ADMIN_TOKEN):
-        raise HTTPException(status_code=403, detail="Jeton d'administration invalide.")
+async def clear_logs(_: dict = Depends(require_admin)):
     LOGS_FILE.write_text("[]", encoding="utf-8")
     return {"message": "Logs effacés"}
+
+
+# ── Proxy n8n (authentifié) ──────────────────────────────────────────────────
+# Relaie /n8n/<path> vers le service n8n interne après vérification du JWT.
+_HOP_BY_HOP = {
+    "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+    "te", "trailers", "transfer-encoding", "upgrade", "content-encoding",
+    "content-length", "host",
+}
+
+
+@app.api_route(
+    "/n8n/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+)
+async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_current_user)):
+    target = f"{N8N_BASE_URL}/{path}"
+    body = await request.body()
+    fwd_headers = {
+        k: v for k, v in request.headers.items()
+        if k.lower() not in _HOP_BY_HOP and k.lower() != "authorization"
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            upstream = await client.request(
+                request.method,
+                target,
+                params=request.query_params,
+                content=body,
+                headers=fwd_headers,
+            )
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=502, detail=f"Service n8n injoignable : {e}")
+
+    resp_headers = {
+        k: v for k, v in upstream.headers.items() if k.lower() not in _HOP_BY_HOP
+    }
+    return Response(
+        content=upstream.content,
+        status_code=upstream.status_code,
+        headers=resp_headers,
+        media_type=upstream.headers.get("content-type"),
+    )

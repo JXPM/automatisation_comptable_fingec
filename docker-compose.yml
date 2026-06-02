@@ -12,7 +12,15 @@ services:
     environment:
       BACKEND_DATA_DIR: /data
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-}
-      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # Secret de signature des jetons de session (obligatoire en prod).
+      AUTH_SECRET: ${AUTH_SECRET:-}
+      # Amorçage du 1er admin au tout premier démarrage (base vide).
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # URL interne du service n8n (résolu par le DNS Docker via le nom du conteneur).
+      N8N_BASE_URL: ${N8N_BASE_URL:-http://fingec-n8n:5678}
+    depends_on:
+      - n8n
     volumes:
       - fingec-data:/data
     expose:
@@ -36,6 +44,37 @@ services:
     networks:
       - web
 
+  # n8n — moteur d'automatisation (relances, e-mails, historique).
+  # Reste INTERNE : aucun port publié. Deux accès via Caddy :
+  #   - app.fingec.fr/n8n/webhook/* → relayé par le backend APRÈS contrôle du JWT
+  #   - n8n.fingec.fr               → éditeur, protégé par le compte propriétaire n8n
+  #     (les /webhook* y sont bloqués par Caddy pour ne pas contourner l'auth du dashboard).
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: fingec-n8n
+    restart: unless-stopped
+    environment:
+      # Éditeur servi sur son sous-domaine dédié.
+      N8N_HOST: ${N8N_HOST:-n8n.fingec.fr}
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: https
+      N8N_EDITOR_BASE_URL: https://${N8N_HOST:-n8n.fingec.fr}/
+      # URL publique des webhooks de PRODUCTION : ils transitent par le dashboard
+      # authentifié (app.fingec.fr/n8n/...), pas par le sous-domaine éditeur.
+      WEBHOOK_URL: ${WEBHOOK_URL:-https://app.fingec.fr/n8n/}
+      # Derrière le reverse-proxy Caddy (1 saut).
+      N8N_PROXY_HOPS: "1"
+      GENERIC_TIMEZONE: Europe/Paris
+      TZ: Europe/Paris
+      # Clé de chiffrement des credentials (DOIT être fixée pour survivre aux redéploiements).
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-}
+    volumes:
+      - fingec-n8n-data:/home/node/.n8n
+    expose:
+      - "5678"
+    networks:
+      - web
+
 # Réseau partagé avec pharmaclick (déjà créé par son compose).
 networks:
   web:
@@ -44,3 +83,4 @@ networks:
 
 volumes:
   fingec-data:
+  fingec-n8n-data:

@@ -21,10 +21,11 @@ export default defineConfig({
       '/process':  'http://localhost:8000',
       '/download': 'http://localhost:8000',
       '/logs':     'http://localhost:8000',
-      '/n8n': {
-        target: 'http://localhost:5678',
-        rewrite: (path) => path.replace(/^\/n8n/, ''),
-      },
+      '/auth':     'http://localhost:8000',
+      '/health':   'http://localhost:8000',
+      // /n8n passe désormais par le backend (qui vérifie le JWT puis relaie vers
+      // n8n) : on ne le proxifie plus directement vers le service n8n.
+      '/n8n':      'http://localhost:8000',
     },
   },
 })

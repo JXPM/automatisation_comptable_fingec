@@ -1,0 +1,1336 @@
+[
+  {
+    "updatedAt": "2026-06-02T12:41:32.246Z",
+    "createdAt": "2026-03-31T15:27:03.186Z",
+    "id": "wOYaWC8ZgfMjy0pr",
+    "name": "fingec automatisation",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "content": "## GET CLIENTS (Dashboard)\n",
+          "height": 256,
+          "width": 848,
+          "color": 3
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -800,
+          -352
+        ],
+        "id": "a4e45ef9-56af-41eb-a26e-a8edbb62582c",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "path": "get-clients",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -768,
+          -272
+        ],
+        "id": "2320b79e-7eb7-4890-8460-26ffbf201c54",
+        "name": "GET Clients",
+        "webhookId": "9f76720d-e881-49f0-9f44-87718d0ee1f2"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Clients",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -560,
+          -272
+        ],
+        "id": "33f89f6f-ea45-4c46-bb88-dcd531a3c618",
+        "name": "Get row(s) in sheet",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\n\nreturn items.filter(item => {\n  return item.json.Statut !== \"Reçu\";\n});"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -352,
+          -272
+        ],
+        "id": "f06a9513-5a3a-47bd-ae8b-624b68650d8c",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ JSON.stringify($items().map(item => item.json)) }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": " application/json"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          -144,
+          -272
+        ],
+        "id": "027d0a40-001a-4c05-a85d-41c2cd6b6dd9",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "content": "## RELANCE CLIENT",
+          "height": 256,
+          "width": 832,
+          "color": "#A8A8A8"
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -800,
+          -16
+        ],
+        "id": "5b9556d5-c865-4d01-8e9a-d321c774bdb0",
+        "name": "Sticky Note1"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "relance-client",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -784,
+          64
+        ],
+        "id": "d29b3029-fd8d-496a-9f1d-c5e91268652f",
+        "name": "POST Relance",
+        "webhookId": "c53be979-ba9f-4fe3-8603-d46b1e5dee2d"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "mode": "url",
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Clients",
+            "mode": "name"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "Email",
+                "lookupValue": "={{ $json.body.email }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -576,
+          64
+        ],
+        "id": "85733084-dc74-4125-9318-48c4d764ad0e",
+        "name": "Get client by email",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $('Get client by email').item.json.Email }}",
+          "subject": "Relance - Transmission de vos documents comptables",
+          "message": "=<div style=\"font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;\">  <p>Bonjour {{ $json.nom }},</p>  <p> Sauf erreur de notre part, nous n’avons pas encore reçu vos documents comptables pour la période en cours. </p>  <p> Afin de pouvoir poursuivre le traitement de votre dossier, nous vous prions de bien vouloir nous les transmettre dès que possible. </p>  <p> Nous restons à votre disposition pour toute information complémentaire. </p>  <p>Cordialement,</p>  <table style=\"margin-top:10px;border-top:1px solid #7d1c34;padding-top:10px;font-family:'Segoe UI',Arial,sans-serif;\"> <tr>  <td style=\"padding-right:15px;\"> <img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\"> </td>  <td> <span style=\"font-size:18px;font-weight:900;color:#7d1c34;\"> Christian NKATTA </span> <br> <span style=\"font-size:14px;color:#555;color:#7d1c34; font-weight:400;\"> 03 00 00 00 00 </span>  <br>  <span style=\"font-size:12px;color:#666;\"> 12 rue Exemple, 67000 Strasbourg </span>   <br>  <span style=\"font-size:13px;color:#444;\"> Cabinet membre de l’Ordre des Experts-Comptables d’Alsace </span>  <br>  <span style=\"font-size:12px;color:#7d1c34;\"> contact@fingec.fr / www.fingec.fr </span>  </td>  </tr> </table>  <hr style=\"border:none;border-top:1px solid #eee;margin-top:20px;\">  <p style=\"font-size:11px;color:#888;\"> Ce message a été généré automatiquement par le système du cabinet. </p>  </div>",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          -368,
+          64
+        ],
+        "id": "a38db4d2-cf3c-4eb8-95ff-9aa3428dddc0",
+        "name": "Send a message",
+        "webhookId": "d4010c9c-f27d-46f0-bc60-a09054e82cca",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mUbA9Xc8UmEgjyu3",
+            "name": "Gmail account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## ENVOI INITIAL (1er DU MOIS)",
+          "height": 240,
+          "width": 880,
+          "color": 7
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          176,
+          -352
+        ],
+        "id": "4c1606a8-2493-443a-aa43-f07ec263b129",
+        "name": "Sticky Note2"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "months",
+                "triggerAtHour": 9
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          192,
+          -288
+        ],
+        "id": "19adbbc8-b717-4ab3-a07a-27e9ba1b6f25",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Clients",
+            "mode": "name"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "Statut",
+                "lookupValue": "En attente"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          368,
+          -288
+        ],
+        "id": "b5c55c54-12a2-4db8-9d2f-0269e04d0dae",
+        "name": "Get row(s) in sheet2",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $json.Email }}",
+          "subject": "Transmission de vos documents comptables",
+          "message": "=<div style=\"font-family:Segoe UI, Arial, sans-serif;font-size:14px;color:#333;line-height:1.6;\">\n\n<p>Bonjour {{ $json.Nom }},</p>\n\n<p>\nDans le cadre du suivi de votre dossier, nous vous remercions de bien vouloir\nnous transmettre vos documents comptables ainsi que vos éléments de paie du mois.\n</p>\n\n<p>\nCes éléments nous permettront d'assurer le traitement de votre comptabilité dans les meilleurs délais.\n</p>\n\n<p>\nVous pouvez nous transmettre vos documents directement par retour de mail ou via votre espace habituel.\n</p>\n\n<p>\nNous vous remercions par avance pour votre collaboration.\n</p>\n\n<p>Cordialement,</p>\n\n<style>\n@media only screen and (max-width: 600px) {\n.stack-column {\ndisplay:block !important;\nwidth:100% !important;\ntext-align:left !important;\n}\n.logo-mobile {\nmargin-bottom:10px !important;\n}\n}\n</style>\n\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:520px;border-top:1px solid #5a0c14;padding-top:12px;\">\n<tr>\n\n<td class=\"stack-column logo-mobile\" width=\"110\" style=\"vertical-align:top;padding-right:12px;\">\n<img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"90\" style=\"display:block;\">\n</td>\n\n<td class=\"stack-column\" style=\"vertical-align:top;\">\n\n<span style=\"font-size:18px;font-weight:700;color:#5a0c14;\">\nChristian NKATTA\n</span>\n\n<br>\n\n<span style=\"font-size:14px;color:#5a0c14;\">\n03 00 00 00 00\n</span>\n\n<br>\n\n<span style=\"font-size:13px;color:#333;\">\nCabinet membre de l’Ordre des Experts-Comptables d’Alsace\n</span>\n\n<br>\n\n<span style=\"font-size:12px;color:#555;\">\n12 rue Exemple, 67000 Strasbourg\n</span>\n\n<br>\n\n<span style=\"font-size:12px;color:#5a0c14;\">\ncontact@fingec.fr | www.fingec.fr\n</span>\n\n</td>\n\n</tr>\n</table>\n\n<hr style=\"border:none;border-top:1px solid #ddd;margin-top:20px;\">\n\n<p style=\"font-size:11px;color:#888;\">\nCe message a été généré automatiquement par le système du cabinet.\n</p>\n\n</div>",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          592,
+          -288
+        ],
+        "id": "8054dbf6-2feb-431a-8a18-befea500c79f",
+        "name": "Send a message2",
+        "webhookId": "d6b30c63-7061-46bf-8e8e-8f76c1ac1f90",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mUbA9Xc8UmEgjyu3",
+            "name": "Gmail account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Clients",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Statut": "Envoyé",
+              "Date_envoi": "={{ new Date().toLocaleDateString('fr-FR') }}",
+              "Nb_relances": "0",
+              "Email": "={{ $('Get row(s) in sheet2').item.json.Email }}"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Nom",
+                "displayName": "Nom",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Statut",
+                "displayName": "Statut",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_envoi",
+                "displayName": "Date_envoi",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Nb_relances",
+                "displayName": "Nb_relances",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_derniere_relance",
+                "displayName": "Date_derniere_relance",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          848,
+          -288
+        ],
+        "id": "b19e8cab-62dd-4c98-ada0-e5ace55788f0",
+        "name": "Update row in sheet1",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Email": "={{ $('Get client by email').item.json.Email }}",
+              "Statut": "Relancé",
+              "Nb_relances": "={{ $('Get client by email').item.json.Nb_relances + 1 }}",
+              "Date_derniere_relance": "={{ new Date().toLocaleDateString('fr-FR') }}"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Nom",
+                "displayName": "Nom",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Statut",
+                "displayName": "Statut",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_envoi",
+                "displayName": "Date_envoi",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Nb_relances",
+                "displayName": "Nb_relances",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_derniere_relance",
+                "displayName": "Date_derniere_relance",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -160,
+          64
+        ],
+        "id": "35a559c4-6788-46bc-90a0-207d36efd0fd",
+        "name": "Update row in sheet",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## RESET MENSUEL",
+          "height": 240,
+          "width": 880,
+          "color": 3
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          176,
+          -16
+        ],
+        "id": "372e8b77-8ecd-47fa-a922-7e043717f9b6",
+        "name": "Sticky Note3"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "months",
+                "triggerAtHour": 7
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          192,
+          64
+        ],
+        "id": "73903298-a24f-46d6-a19f-e4e921631604",
+        "name": "Schedule Trigger1"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit#gid=0"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          416,
+          64
+        ],
+        "id": "ce41ae94-0751-4a1b-8d91-8767f3db4c51",
+        "name": "Get all clients",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=1668609444#gid=1668609444",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1668609444,
+            "mode": "list",
+            "cachedResultName": "Historique",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit#gid=1668609444"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Mois": "={{ new Date().toLocaleDateString('fr-FR', {month:'long', year:'numeric'}) }}",
+              "Nom": "={{ $json.Nom }}",
+              "Email": "={{ $json.Email }}",
+              "Statut_final": "={{ $json.Statut }}",
+              "Nb_relances": "={{ $json.Nb_relances }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Mois",
+                "displayName": "Mois",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Nom",
+                "displayName": "Nom",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Statut_final",
+                "displayName": "Statut_final",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Nb_relances",
+                "displayName": "Nb_relances",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          624,
+          64
+        ],
+        "id": "53f41ce3-7fab-40a3-9917-a4b892e4eed7",
+        "name": "Append to Historique",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Email": "={{ $('Get all clients').item.json.Email }}",
+              "Statut": "En attente",
+              "Nb_relances": "0"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Nom",
+                "displayName": "Nom",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Statut",
+                "displayName": "Statut",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_envoi",
+                "displayName": "Date_envoi",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Nb_relances",
+                "displayName": "Nb_relances",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_derniere_relance",
+                "displayName": "Date_derniere_relance",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          832,
+          64
+        ],
+        "id": "91fa834e-61b8-40f4-aaf9-2678a84e033e",
+        "name": "Update row in sheet2",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "return $input.all();"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -336,
+          416
+        ],
+        "id": "644ece38-4ca0-4180-b80f-399d9617eb5e",
+        "name": "Code in JavaScript1"
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ JSON.stringify($input.all().map(i => i.json)) }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": " application/json"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          -128,
+          416
+        ],
+        "id": "e95bf453-6b2e-4170-8fba-3c8ed0f94c7b",
+        "name": "Respond to Webhook1"
+      },
+      {
+        "parameters": {
+          "path": "get-historique",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -752,
+          416
+        ],
+        "id": "63619565-7607-4a7a-86ca-c76e40bef918",
+        "name": "GET Historique",
+        "webhookId": "9f76720d-e881-49f0-9f44-87718d0ee1f2"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=1668609444#gid=1668609444",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Historique",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -544,
+          416
+        ],
+        "id": "14d62f5a-5c47-45b2-b043-4c41ac6bc610",
+        "name": "onglet Historique",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## GET/Historique",
+          "height": 224,
+          "width": 848
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -784,
+          352
+        ],
+        "id": "d6f2c2aa-e4a1-4d2a-a9f5-0e9ad2fee58a",
+        "name": "Sticky Note4"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit?gid=0#gid=0",
+            "mode": "url"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Clients",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4ngtRTG4VQKsnOv5vnol8QNhFEoeO9j_tPDq6JB3sU/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Email": "={{ $json.body.email }}",
+              "Statut": "Reçu"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Nom",
+                "displayName": "Nom",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Statut",
+                "displayName": "Statut",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Date_envoi",
+                "displayName": "Date_envoi",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Nb_relances",
+                "displayName": "Nb_relances",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Date_derniere_relance",
+                "displayName": "Date_derniere_relance",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          384,
+          416
+        ],
+        "id": "f34900a9-f9e3-4a83-bce8-e7e0c6098f9b",
+        "name": "Update row in sheet3",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "U72dwLU2cSdYwJa3",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## POST/marquer-recu",
+          "height": 208,
+          "width": 400,
+          "color": 6
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          176,
+          352
+        ],
+        "id": "bc347f6e-52b4-4a29-91c3-29bb8b212e0a",
+        "name": "Sticky Note5"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "marquer-recu",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          208,
+          416
+        ],
+        "id": "4c5b1661-4e7b-4405-ae96-9b259236543b",
+        "name": "POST Marquer-Recu",
+        "webhookId": "c53be979-ba9f-4fe3-8603-d46b1e5dee2d"
+      },
+      {
+        "parameters": {
+          "content": "## POST /relance-historique",
+          "height": 208,
+          "width": 416
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          640,
+          352
+        ],
+        "id": "d8682719-eb73-48cd-8c53-4b5f0ca9263f",
+        "name": "Sticky Note6"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "relance-historique",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          656,
+          400
+        ],
+        "id": "bb7fadaf-f165-4b89-b42b-78c6d8bf24a2",
+        "name": "POST Relance-Historique",
+        "webhookId": "c53be979-ba9f-4fe3-8603-d46b1e5dee2d"
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $json.body.email }}",
+          "subject": "=Rappel documents du {{ $json.body.mois }}",
+          "message": "<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#333\">   <p>Bonjour {{ $json.body.nom }},</p>   <p>Nous n'avons pas reçu vos documents comptables    pour le mois de <strong>{{ $json.body.mois }}</strong>.</p>   <p>Merci de bien vouloir les déposer sur Dext dès que possible.</p>   <p>Cordialement,<br>Cabinet Fingec</p> </div>",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          880,
+          400
+        ],
+        "id": "337bc099-9167-4f39-8da9-d1fb30a03263",
+        "name": "Send a message1",
+        "webhookId": "986a6a2a-6acc-44ad-8a4c-34260f0cc1fa",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mUbA9Xc8UmEgjyu3",
+            "name": "Gmail account 2"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "GET Clients": {
+        "main": [
+          [
+            {
+              "node": "Get row(s) in sheet",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get row(s) in sheet": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "POST Relance": {
+        "main": [
+          [
+            {
+              "node": "Get client by email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get client by email": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get row(s) in sheet2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get row(s) in sheet2": {
+        "main": [
+          [
+            {
+              "node": "Send a message2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message2": {
+        "main": [
+          [
+            {
+              "node": "Update row in sheet1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message": {
+        "main": [
+          [
+            {
+              "node": "Update row in sheet",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger1": {
+        "main": [
+          [
+            {
+              "node": "Get all clients",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get all clients": {
+        "main": [
+          [
+            {
+              "node": "Append to Historique",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Append to Historique": {
+        "main": [
+          [
+            {
+              "node": "Update row in sheet2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GET Historique": {
+        "main": [
+          [
+            {
+              "node": "onglet Historique",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "onglet Historique": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "POST Marquer-Recu": {
+        "main": [
+          [
+            {
+              "node": "Update row in sheet3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "POST Relance-Historique": {
+        "main": [
+          [
+            {
+              "node": "Send a message1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message1": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate",
+      "availableInMCP": false
+    },
+    "staticData": {
+      "node:Schedule Trigger": {
+        "recurrenceRules": []
+      },
+      "node:Schedule Trigger1": {
+        "recurrenceRules": []
+      }
+    },
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "195b5cc2-95cf-4f63-a596-5bfc834d8a58",
+    "activeVersionId": "ff0150b7-c7db-42b2-adc8-625b53da0462",
+    "versionCounter": 422,
+    "triggerCount": 7,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-31T15:27:03.229Z",
+        "createdAt": "2026-03-31T15:27:03.229Z",
+        "role": "workflow:owner",
+        "workflowId": "wOYaWC8ZgfMjy0pr",
+        "projectId": "KIPn1zUXWe3QO8x9",
+        "project": {
+          "updatedAt": "2026-03-09T10:22:50.986Z",
+          "createdAt": "2026-03-09T10:20:11.314Z",
+          "id": "KIPn1zUXWe3QO8x9",
+          "name": "Johan Bilé <bilejohan04@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "24a52899-78f2-4f9f-aaf7-deeb2565a594"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
