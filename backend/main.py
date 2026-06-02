@@ -303,9 +303,12 @@ _HOP_BY_HOP = {
 async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_current_user)):
     target = f"{N8N_BASE_URL}/{path}"
     body = await request.body()
+    # On retire aussi l'en-tête Authorization (jeton du dashboard, pas pour n8n) et
+    # les en-têtes conditionnels : sinon n8n peut répondre 304 (corps vide), que le
+    # front interprète comme une erreur.
+    _DROP = _HOP_BY_HOP | {"authorization", "if-none-match", "if-modified-since"}
     fwd_headers = {
-        k: v for k, v in request.headers.items()
-        if k.lower() not in _HOP_BY_HOP and k.lower() != "authorization"
+        k: v for k, v in request.headers.items() if k.lower() not in _DROP
     }
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

@@ -55,7 +55,9 @@ export async function authFetch(path: string, init: RequestInit = {}): Promise<R
   const headers = new Headers(init.headers ?? {});
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(`${API_URL}${path}`, { ...init, headers });
+  // Appels d'API dynamiques : on désactive le cache HTTP du navigateur. Sinon il
+  // revalide (If-None-Match) et reçoit un 304 — que `res.ok` (200-299) rejette.
+  const res = await fetch(`${API_URL}${path}`, { cache: "no-store", ...init, headers });
 
   if (res.status === 401) {
     clearSession();
