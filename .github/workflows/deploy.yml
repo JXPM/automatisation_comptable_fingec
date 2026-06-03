@@ -45,9 +45,24 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Add VPS to known_hosts
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          # ssh-keyscan peut échouer ponctuellement (timeout réseau, port 22
+          # momentanément filtré). On réessaie plutôt que de planter tout le
+          # déploiement au premier échec.
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 15 -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null \
+               && grep -q . ~/.ssh/known_hosts; then
+              echo "known_hosts récupéré (tentative $attempt)"
+              exit 0
+            fi
+            echo "ssh-keyscan tentative $attempt échouée, nouvel essai dans 10s…"
+            sleep 10
+          done
+          echo "::error::ssh-keyscan a échoué après 5 tentatives (port 22 injoignable depuis le runner ?)"
+          exit 1
 
       - name: Rsync code to VPS
         env:
