@@ -301,6 +301,11 @@ async def _n8n_fetch_json(path: str) -> list:
         raise HTTPException(status_code=502, detail=f"Service n8n injoignable : {e}")
     if upstream.status_code != 200:
         raise HTTPException(status_code=502, detail="Réponse inattendue du service n8n.")
+    # Corps vide = aucune donnée. n8n (responseNode) ne renvoie rien quand le nœud
+    # Respond ne reçoit aucun item (ex. feuille Historique encore vide) : on traite
+    # ça comme une liste vide plutôt que d'échouer au parsing JSON.
+    if not upstream.text.strip():
+        return []
     try:
         data = upstream.json()
     except ValueError:
