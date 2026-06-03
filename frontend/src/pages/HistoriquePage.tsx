@@ -28,7 +28,7 @@ export default function HistoriquePage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await authFetch("/n8n/webhook/get-historique");
+      const res = await authFetch("/api/historique");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setHistorique(Array.isArray(data) ? data : []);

@@ -64,6 +64,18 @@ def init_db() -> None:
             )
             """
         )
+        # Attribution client -> comptable. Les clients vivent dans Google Sheets ;
+        # on les référence par leur Email (clé unique). Un client a au plus un
+        # propriétaire, un utilisateur peut en avoir plusieurs (1-N).
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS client_assignments (
+                client_email TEXT PRIMARY KEY COLLATE NOCASE,
+                user_id      INTEGER NOT NULL,
+                assigned_at  TEXT NOT NULL
+            )
+            """
+        )
     _seed_initial_admin()
 
 
@@ -197,6 +209,47 @@ def delete_user(user_id: int) -> None:
         cur = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         if cur.rowcount == 0:
             raise ValueError("Utilisateur introuvable.")
+        # Les clients de cet utilisateur redeviennent non attribués.
+        conn.execute("DELETE FROM client_assignments WHERE user_id = ?", (user_id,))
+
+
+# ── Attribution des clients ───────────────────────────────────────────────────
+def get_assignments() -> dict[str, int]:
+    """Retourne le mapping {email_client (minuscule): user_id}."""
+    with _db_lock, _connect() as conn:
+        rows = conn.execute("SELECT client_email, user_id FROM client_assignments").fetchall()
+    return {row["client_email"].strip().lower(): row["user_id"] for row in rows}
+
+
+def assigned_emails_for(user_id: int) -> set[str]:
+    """Emails (minuscule) des clients attribués à cet utilisateur."""
+    with _db_lock, _connect() as conn:
+        rows = conn.execute(
+            "SELECT client_email FROM client_assignments WHERE user_id = ?", (user_id,)
+        ).fetchall()
+    return {row["client_email"].strip().lower() for row in rows}
+
+
+def set_assignment(client_email: str, user_id: int | None) -> None:
+    """Attribue un client à un utilisateur, ou retire l'attribution si user_id est None."""
+    email = client_email.strip().lower()
+    if not email:
+        raise ValueError("Email client manquant.")
+    with _db_lock, _connect() as conn:
+        if user_id is None:
+            conn.execute(
+                "DELETE FROM client_assignments WHERE client_email = ? COLLATE NOCASE", (email,)
+            )
+            return
+        if conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone() is None:
+            raise ValueError("Utilisateur introuvable.")
+        conn.execute(
+            "INSERT INTO client_assignments (client_email, user_id, assigned_at) "
+            "VALUES (?, ?, ?) "
+            "ON CONFLICT(client_email) DO UPDATE SET "
+            "  user_id = excluded.user_id, assigned_at = excluded.assigned_at",
+            (email, user_id, datetime.now(timezone.utc).isoformat(timespec="seconds")),
+        )
 
 
 def count_active_admins(exclude_id: int | None = None) -> int:

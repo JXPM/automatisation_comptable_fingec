@@ -287,6 +287,76 @@ async def clear_logs(_: dict = Depends(require_admin)):
     return {"message": "Logs effacés"}
 
 
+# ── Clients & attribution (filtrés par utilisateur) ──────────────────────────
+# Les clients vivent dans Google Sheets, exposés via les webhooks n8n. On les
+# récupère ici côté serveur pour pouvoir les FILTRER selon l'utilisateur : un
+# comptable ne voit que les clients que l'admin lui a attribués ; l'admin voit
+# tout (avec l'info d'attribution).
+async def _n8n_fetch_json(path: str) -> list:
+    target = f"{N8N_BASE_URL}/{path}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            upstream = await client.get(target)
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=502, detail=f"Service n8n injoignable : {e}")
+    if upstream.status_code != 200:
+        raise HTTPException(status_code=502, detail="Réponse inattendue du service n8n.")
+    try:
+        data = upstream.json()
+    except ValueError:
+        raise HTTPException(status_code=502, detail="Réponse n8n illisible.")
+    return data if isinstance(data, list) else []
+
+
+def _email_of(row: dict) -> str:
+    return str(row.get("Email", "")).strip().lower()
+
+
+class AssignmentPayload(BaseModel):
+    client_email: str
+    user_id: int | None = None
+
+
+@app.get("/api/clients")
+async def api_clients(user: dict = Depends(get_current_user)):
+    clients = await _n8n_fetch_json("webhook/get-clients")
+    assignments = auth.get_assignments()  # email -> user_id
+    users_by_id = {u["id"]: u for u in auth.list_users()}
+
+    def annotate(c: dict) -> dict:
+        uid = assignments.get(_email_of(c))
+        owner = users_by_id.get(uid) if uid else None
+        return {
+            **c,
+            "assigned_to": uid,
+            "assigned_to_name": (owner["full_name"] or owner["email"]) if owner else None,
+        }
+
+    annotated = [annotate(c) for c in clients]
+    if user["role"] == "admin":
+        return annotated
+    mine = auth.assigned_emails_for(user["id"])
+    return [c for c in annotated if _email_of(c) in mine]
+
+
+@app.get("/api/historique")
+async def api_historique(user: dict = Depends(get_current_user)):
+    rows = await _n8n_fetch_json("webhook/get-historique")
+    if user["role"] == "admin":
+        return rows
+    mine = auth.assigned_emails_for(user["id"])
+    return [r for r in rows if _email_of(r) in mine]
+
+
+@app.put("/api/assignments")
+async def put_assignment(payload: AssignmentPayload, _: dict = Depends(require_admin)):
+    try:
+        auth.set_assignment(payload.client_email, payload.user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Attribution mise à jour."}
+
+
 # ── Proxy n8n (authentifié) ──────────────────────────────────────────────────
 # Relaie /n8n/<path> vers le service n8n interne après vérification du JWT.
 _HOP_BY_HOP = {

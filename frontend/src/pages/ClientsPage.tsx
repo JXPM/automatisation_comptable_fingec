@@ -5,6 +5,7 @@ import { useToast } from "../components/Toast";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
 import { authFetch } from "../utils/api";
+import { useAuth } from "../auth/AuthContext";
 
 interface Client {
   Nom: string;
@@ -12,6 +13,14 @@ interface Client {
   Statut: string;
   Nb_relances?: number;
   Date_derniere_relance?: string;
+  assigned_to?: number | null;
+  assigned_to_name?: string | null;
+}
+
+interface SimpleUser {
+  id: number;
+  email: string;
+  full_name: string;
 }
 
 function Spinner() {
@@ -32,12 +41,18 @@ export default function ClientsPage() {
   const [filter, setFilter] = useState("");
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [modal, setModal] = useState<{ email: string; nom: string; action: "relance" | "initial" } | null>(null);
+  const [users, setUsers] = useState<SimpleUser[]>([]);
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const gridCols = isAdmin
+    ? "1.7fr 1.7fr 1fr 0.6fr 1.1fr 1.3fr 1.3fr"
+    : "2fr 2fr 1.2fr 0.7fr 1.3fr 1.6fr";
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await authFetch("/n8n/webhook/get-clients");
+      const res = await authFetch("/api/clients");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);
@@ -50,6 +65,39 @@ export default function ClientsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Liste des comptables (pour le menu d'attribution, réservé à l'admin).
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      try {
+        const res = await authFetch("/auth/users");
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(Array.isArray(data) ? data : []);
+        }
+      } catch { /* sans liste, le menu reste vide */ }
+    })();
+  }, [isAdmin]);
+
+  const assignClient = async (email: string, userId: number | null) => {
+    const prev = clients;
+    // Optimiste : on met à jour l'UI tout de suite.
+    setClients(cs => cs.map(c => c.Email === email
+      ? { ...c, assigned_to: userId, assigned_to_name: userId ? (users.find(u => u.id === userId)?.full_name || users.find(u => u.id === userId)?.email || null) : null }
+      : c));
+    try {
+      const res = await authFetch("/api/assignments", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_email: email, user_id: userId }),
+      });
+      if (!res.ok) throw new Error();
+      showToast(userId ? "Client attribué" : "Attribution retirée");
+    } catch {
+      setClients(prev);
+      showToast("Erreur lors de l'attribution", "error");
+    }
+  };
 
   const filtered = clients.filter(c => {
     const s = norm(search);
@@ -234,11 +282,13 @@ export default function ClientsPage() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "2fr 2fr 1.2fr 0.7fr 1.3fr 1.6fr",
+          gridTemplateColumns: gridCols,
           padding: "11px 20px", background: "#FAFAFA",
           borderBottom: "1px solid #F3F4F6", gap: 12, alignItems: "center",
         }}>
-          {["Client", "Email", "Statut", "Relances", "Dernière relance", "Actions"].map(h => (
+          {(isAdmin
+            ? ["Client", "Email", "Statut", "Relances", "Dernière relance", "Assigné à", "Actions"]
+            : ["Client", "Email", "Statut", "Relances", "Dernière relance", "Actions"]).map(h => (
             <span key={h} style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.6px" }}>
               {h}
             </span>
@@ -274,7 +324,7 @@ export default function ClientsPage() {
               key={i}
               style={{
                 display: "grid",
-                gridTemplateColumns: "2fr 2fr 1.2fr 0.7fr 1.3fr 1.6fr",
+                gridTemplateColumns: gridCols,
                 padding: "13px 20px", gap: 12, alignItems: "center",
                 borderBottom: i < filtered.length - 1 ? "1px solid #F9FAFB" : "none",
                 transition: "background 0.1s",
@@ -310,6 +360,26 @@ export default function ClientsPage() {
               <span style={{ fontSize: 12, color: "#9CA3AF" }}>
                 {cl.Date_derniere_relance || "—"}
               </span>
+
+              {isAdmin && (
+                <select
+                  value={cl.assigned_to ?? ""}
+                  onChange={e => assignClient(cl.Email, e.target.value ? Number(e.target.value) : null)}
+                  title="Comptable attribué"
+                  style={{
+                    width: "100%", maxWidth: 160,
+                    padding: "5px 8px", borderRadius: 7,
+                    border: "1px solid #E5E7EB", background: "white",
+                    fontSize: 12, color: cl.assigned_to ? "#111827" : "#9CA3AF",
+                    fontFamily: "inherit", cursor: "pointer", outline: "none",
+                  }}
+                >
+                  <option value="">— Non attribué —</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name || u.email}</option>
+                  ))}
+                </select>
+              )}
 
               <div style={{ display: "flex", gap: 6 }}>
                 {!isRecu ? (

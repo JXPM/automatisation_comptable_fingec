@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await authFetch("/n8n/webhook/get-clients");
+      const res = await authFetch("/api/clients");
       if (!res.ok) throw new Error();
       const data = await res.json();
       setClients(Array.isArray(data) ? data : []);
