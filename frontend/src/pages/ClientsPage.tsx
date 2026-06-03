@@ -65,7 +65,7 @@ export default function ClientsPage() {
       });
       if (!res.ok) throw new Error();
       showToast(`Relance envoyée à ${nom}`);
-      setTimeout(load, 1500);
+      await load();
     } catch {
       showToast(`Erreur lors de la relance de ${nom}`, "error");
     } finally {
@@ -82,7 +82,7 @@ export default function ClientsPage() {
       });
       if (!res.ok) throw new Error();
       showToast(`Mail initial envoyé à ${nom}`);
-      setTimeout(load, 1500);
+      await load();
     } catch {
       showToast(`Erreur lors de l'envoi à ${nom}`, "error");
     } finally {
@@ -99,7 +99,7 @@ export default function ClientsPage() {
       });
       if (!res.ok) throw new Error();
       showToast(`${nom} marqué comme Reçu`);
-      setTimeout(load, 1000);
+      await load();
     } catch {
       showToast(`Erreur pour ${nom}`, "error");
     } finally {
