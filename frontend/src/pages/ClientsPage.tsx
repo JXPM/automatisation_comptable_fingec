@@ -31,7 +31,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
-  const [modal, setModal] = useState<{ email: string; nom: string } | null>(null);
+  const [modal, setModal] = useState<{ email: string; nom: string; action: "relance" | "initial" } | null>(null);
   const { showToast } = useToast();
 
   const load = async () => {
@@ -68,6 +68,23 @@ export default function ClientsPage() {
       setTimeout(load, 1500);
     } catch {
       showToast(`Erreur lors de la relance de ${nom}`, "error");
+    } finally {
+      setLoadingKey(null);
+    }
+  };
+
+  const envoiInitial = async (email: string, nom: string) => {
+    setLoadingKey(email);
+    try {
+      const res = await authFetch("/n8n/webhook/envoi-initial", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error();
+      showToast(`Mail initial envoyé à ${nom}`);
+      setTimeout(load, 1500);
+    } catch {
+      showToast(`Erreur lors de l'envoi à ${nom}`, "error");
     } finally {
       setLoadingKey(null);
     }
@@ -247,6 +264,7 @@ export default function ClientsPage() {
           </div>
         ) : filtered.map((cl, i) => {
           const isRecu = cl.Statut === "Reçu";
+          const isAttente = cl.Statut === "En attente";
           const isRelanceLoading = loadingKey === cl.Email;
           const isRecuLoading = loadingKey === cl.Email + "_r";
           const ac = avatarColor(cl.Nom);
@@ -298,7 +316,7 @@ export default function ClientsPage() {
                   <>
                     <button
                       disabled={isRelanceLoading}
-                      onClick={() => setModal({ email: cl.Email, nom: cl.Nom })}
+                      onClick={() => setModal({ email: cl.Email, nom: cl.Nom, action: isAttente ? "initial" : "relance" })}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
                         padding: "6px 12px", borderRadius: 7, border: "none",
@@ -312,7 +330,7 @@ export default function ClientsPage() {
                       {isRelanceLoading ? <Spinner /> : (
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                       )}
-                      Relancer
+                      {isAttente ? "Envoyer le mail" : "Relancer"}
                     </button>
                     <button
                       disabled={isRecuLoading}
@@ -355,8 +373,18 @@ export default function ClientsPage() {
 
       <Modal
         open={!!modal}
-        text={modal ? `Envoyer une relance par email à ${modal.nom} ?` : ""}
-        onConfirm={() => { if (modal) relancer(modal.email, modal.nom); setModal(null); }}
+        text={modal
+          ? (modal.action === "initial"
+              ? `Envoyer le mail initial à ${modal.nom} ?`
+              : `Envoyer une relance par email à ${modal.nom} ?`)
+          : ""}
+        onConfirm={() => {
+          if (modal) {
+            if (modal.action === "initial") envoiInitial(modal.email, modal.nom);
+            else relancer(modal.email, modal.nom);
+          }
+          setModal(null);
+        }}
         onCancel={() => setModal(null)}
       />
     </div>
