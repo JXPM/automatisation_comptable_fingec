@@ -365,6 +365,15 @@ _HOP_BY_HOP = {
     "content-length", "host",
 }
 
+# Webhooks d'ACTION sur un client (POST {email: ...}). Un comptable ne peut les
+# déclencher que sur un client qui lui est attribué ; l'admin n'est pas restreint.
+_CLIENT_ACTION_PATHS = {
+    "webhook/relance-client",
+    "webhook/marquer-recu",
+    "webhook/envoi-initial",
+    "webhook/relance-historique",
+}
+
 
 @app.api_route(
     "/n8n/{path:path}",
@@ -373,6 +382,15 @@ _HOP_BY_HOP = {
 async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_current_user)):
     target = f"{N8N_BASE_URL}/{path}"
     body = await request.body()
+    # Enforcement : un comptable ne peut agir que sur SES clients attribués.
+    if user["role"] != "admin" and path in _CLIENT_ACTION_PATHS:
+        try:
+            payload = json.loads(body or b"{}")
+            target_email = str(payload.get("email", "")).strip().lower()
+        except (ValueError, AttributeError):
+            target_email = ""
+        if not target_email or target_email not in auth.assigned_emails_for(user["id"]):
+            raise HTTPException(status_code=403, detail="Ce client ne vous est pas attribué.")
     # On retire aussi l'en-tête Authorization (jeton du dashboard, pas pour n8n) et
     # les en-têtes conditionnels : sinon n8n peut répondre 304 (corps vide), que le
     # front interprète comme une erreur.

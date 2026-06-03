@@ -11,7 +11,7 @@ app.fingec.fr {
     # API → backend fingec (résolu par le DNS Docker sur le réseau partagé)
     # /n8n* est volontairement relayé au backend : il vérifie le JWT avant de
     # transmettre à n8n (n8n n'est jamais joignable sans authentification).
-    @api path /process* /download* /logs* /auth* /health* /n8n*
+    @api path /process* /download* /logs* /auth* /health* /n8n* /api*
     handle @api {
         reverse_proxy fingec-backend:8000
     }
