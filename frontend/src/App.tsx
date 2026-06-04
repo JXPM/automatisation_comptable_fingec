@@ -8,6 +8,7 @@ import TraitementPage from "./pages/TraitementPage";
 import ClientsPage from "./pages/ClientsPage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoriquePage from "./pages/HistoriquePage";
+import MailPage from "./pages/MailPage";
 import LogsPage from "./pages/LogsPage";
 import AdminPage from "./pages/AdminPage";
 
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/historique" element={<HistoriquePage />} />
+              <Route path="/mail" element={<MailPage />} />
               <Route path="/logs" element={<LogsPage />} />
               <Route
                 path="/admin"

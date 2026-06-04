@@ -61,6 +61,16 @@ const NAV = [
     ),
   },
   {
+    to: "/mail",
+    label: "Nouveau mail",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+  },
+  {
     to: "/logs",
     label: "Logs",
     icon: (
