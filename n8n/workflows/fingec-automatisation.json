@@ -180,7 +180,7 @@
         "parameters": {
           "sendTo": "={{ $('Get client by email').item.json.Email }}",
           "subject": "Relance - Transmission de vos documents comptables",
-          "message": "=<div style=\"font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;\">  <p>Bonjour {{ $json.Nom }},</p>  <p> Sauf erreur de notre part, nous n’avons pas encore reçu vos documents comptables pour la période en cours. </p>  <p> Afin de pouvoir poursuivre le traitement de votre dossier, nous vous prions de bien vouloir nous les transmettre dès que possible. </p>  <p> Nous restons à votre disposition pour toute information complémentaire. </p>  <p>Cordialement,</p>  <table style=\"margin-top:10px;border-top:1px solid #7d1c34;padding-top:10px;font-family:'Segoe UI',Arial,sans-serif;\"> <tr>  <td style=\"padding-right:15px;\"> <img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\"> </td>  <td> <span style=\"font-size:18px;font-weight:900;color:#7d1c34;\"> Christian NKATTA </span> <br> <span style=\"font-size:14px;color:#555;color:#7d1c34; font-weight:400;\"> 03 00 00 00 00 </span>  <br>  <span style=\"font-size:12px;color:#666;\"> 12 rue Exemple, 67000 Strasbourg </span>   <br>  <span style=\"font-size:13px;color:#444;\"> Cabinet membre de l’Ordre des Experts-Comptables d’Alsace </span>  <br>  <span style=\"font-size:12px;color:#7d1c34;\"> contact@fingec.fr / www.fingec.fr </span>  </td>  </tr> </table>  <hr style=\"border:none;border-top:1px solid #eee;margin-top:20px;\">  <p style=\"font-size:11px;color:#888;\"> Ce message a été généré automatiquement par le système du cabinet. </p>  </div>",
+          "message": "=<div style=\"font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;\">  <p>Bonjour {{ $json.nom }},</p>  <p> Sauf erreur de notre part, nous n’avons pas encore reçu vos documents comptables pour la période en cours. </p>  <p> Afin de pouvoir poursuivre le traitement de votre dossier, nous vous prions de bien vouloir nous les transmettre dès que possible. </p>  <p> Nous restons à votre disposition pour toute information complémentaire. </p>  <p>Cordialement,</p>  <table style=\"margin-top:10px;border-top:1px solid #7d1c34;padding-top:10px;font-family:'Segoe UI',Arial,sans-serif;\"> <tr>  <td style=\"padding-right:15px;\"> <img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\"> </td>  <td> <span style=\"font-size:18px;font-weight:900;color:#7d1c34;\"> Christian NKATTA </span> <br> <span style=\"font-size:14px;color:#555;color:#7d1c34; font-weight:400;\"> 03 00 00 00 00 </span>  <br>  <span style=\"font-size:12px;color:#666;\"> 12 rue Exemple, 67000 Strasbourg </span>   <br>  <span style=\"font-size:13px;color:#444;\"> Cabinet membre de l’Ordre des Experts-Comptables d’Alsace </span>  <br>  <span style=\"font-size:12px;color:#7d1c34;\"> contact@fingec.fr / www.fingec.fr </span>  </td>  </tr> </table>  <hr style=\"border:none;border-top:1px solid #eee;margin-top:20px;\">  <p style=\"font-size:11px;color:#888;\"> Ce message a été généré automatiquement par le système du cabinet. </p>  </div>",
           "options": {}
         },
         "type": "n8n-nodes-base.gmail",
@@ -427,7 +427,7 @@
             "value": {
               "Email": "={{ $('Get client by email').item.json.Email }}",
               "Statut": "Relancé",
-              "Nb_relances": "={{ Number($('Get client by email').item.json.Nb_relances) + 1 }}",
+              "Nb_relances": "={{ $('Get client by email').item.json.Nb_relances + 1 }}",
               "Date_derniere_relance": "={{ new Date().toLocaleDateString('fr-FR') }}"
             },
             "matchingColumns": [
@@ -1073,7 +1073,7 @@
         "parameters": {
           "sendTo": "={{ $json.body.email }}",
           "subject": "=Rappel documents du {{ $json.body.mois }}",
-          "message": "=<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#333\">   <p>Bonjour {{ $json.body.nom }},</p>   <p>Nous n'avons pas reçu vos documents comptables    pour le mois de <strong>{{ $json.body.mois }}</strong>.</p>   <p>Merci de bien vouloir les déposer sur Dext dès que possible.</p>   <p>Cordialement,<br>Cabinet Fingec</p> </div>",
+          "message": "<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#333\">   <p>Bonjour {{ $json.body.nom }},</p>   <p>Nous n'avons pas reçu vos documents comptables    pour le mois de <strong>{{ $json.body.mois }}</strong>.</p>   <p>Merci de bien vouloir les déposer sur Dext dès que possible.</p>   <p>Cordialement,<br>Cabinet Fingec</p> </div>",
           "options": {}
         },
         "type": "n8n-nodes-base.gmail",
@@ -1091,9 +1091,59 @@
             "name": "Gmail account 2"
           }
         }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "send-account-email",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          656,
+          600
+        ],
+        "id": "1bdef465-1d33-476d-ba7f-c9ab84419d1f",
+        "name": "POST Account-Email",
+        "webhookId": "3291793a-e497-4c88-b0e7-50375e685aa3"
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $json.body.to }}",
+          "subject": "={{ $json.body.subject }}",
+          "message": "={{ (() => {\n  const b = $json.body;\n  const name = b.full_name ? b.full_name : '';\n  const greeting = name ? ('Bonjour ' + name + ',') : 'Bonjour,';\n  const labels = { setup: 'Définir mon mot de passe', reset: 'Réinitialiser mon mot de passe' };\n  const btnLabel = labels[b.kind];\n  const hasBtn = b.link && btnLabel;\n  const button = hasBtn\n    ? ('<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:24px 0;\"><tr><td style=\"border-radius:8px;background:#7d1c34;\">'\n       + '<a href=\"' + b.link + '\" style=\"display:inline-block;padding:13px 26px;font-family:\\'Segoe UI\\',Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">'\n       + btnLabel + '</a></td></tr></table>')\n    : '';\n  const fallback = hasBtn\n    ? ('<p style=\"font-size:12px;color:#888;line-height:1.5;\">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br><a href=\"' + b.link + '\" style=\"color:#7d1c34;\">' + b.link + '</a></p>'\n       + '<p style=\"font-size:12px;color:#888;\">Ce lien est valable 1 heure.</p>')\n    : '';\n  return '<div style=\"background:#f4f4f5;padding:24px 0;font-family:\\'Segoe UI\\',Arial,sans-serif;\">'\n    + '<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"center\">'\n    + '<table role=\"presentation\" width=\"560\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #ececec;\">'\n    + '<tr><td style=\"background:#7d1c34;padding:22px 32px;\"><img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\" alt=\"Fingec\" style=\"display:block;\"></td></tr>'\n    + '<tr><td style=\"padding:32px;color:#333;font-size:14px;line-height:1.65;\">'\n    + '<p style=\"margin:0 0 14px;font-size:16px;color:#1a1a1a;\">' + greeting + '</p>'\n    + '<p style=\"margin:0 0 4px;\">' + b.intro + '</p>'\n    + button + fallback\n    + '<p style=\"margin:18px 0 0;\">Cordialement,</p>'\n    + '<table style=\"margin-top:14px;border-top:1px solid #7d1c34;padding-top:12px;width:100%;\"><tr><td>'\n    + '<span style=\"font-size:17px;font-weight:900;color:#7d1c34;\">Cabinet Fingec</span><br>'\n    + '<span style=\"font-size:12px;color:#666;\">12 rue Exemple, 67000 Strasbourg</span><br>'\n    + '<span style=\"font-size:13px;color:#444;\">Cabinet membre de l\\'Ordre des Experts-Comptables d\\'Alsace</span><br>'\n    + '<span style=\"font-size:12px;color:#7d1c34;\">contact@fingec.fr / www.fingec.fr</span>'\n    + '</td></tr></table></td></tr>'\n    + '<tr><td style=\"background:#faf7f8;padding:14px 32px;border-top:1px solid #eee;\"><p style=\"margin:0;font-size:11px;color:#999;\">Cet e-mail vous est adressé car un compte vous concernant a été modifié sur l\\'espace Fingec. Si vous n\\'êtes pas concerné, ignorez ce message.</p></td></tr>'\n    + '</table></td></tr></table></div>';\n})() }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          880,
+          600
+        ],
+        "id": "1c556101-ffe8-4db1-ac6e-982d91caf834",
+        "name": "Send Account Email",
+        "webhookId": "0e29f93e-b889-4596-9009-147f44eea72a",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mUbA9Xc8UmEgjyu3",
+            "name": "Gmail account 2"
+          }
+        }
       }
     ],
     "connections": {
+      "POST Account-Email": {
+        "main": [
+          [
+            {
+              "node": "Send Account Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
       "GET Clients": {
         "main": [
           [
