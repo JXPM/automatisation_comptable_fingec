@@ -6,6 +6,7 @@ d'utilisateurs avec du turnover (alternants/stagiaires).
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import secrets
 import sqlite3
@@ -25,6 +26,14 @@ DB_PATH = DATA_DIR / "app.db"
 
 JWT_ALGORITHM = "HS256"
 TOKEN_TTL = timedelta(hours=8)  # une journée de travail
+
+# Durée de validité des liens de mot de passe envoyés par e-mail.
+# - "setup"  : première définition du mot de passe (création de compte) → long.
+# - "reset"  : mot de passe oublié → court (limite la fenêtre d'abus).
+RESET_TOKEN_TTL = {
+    "setup": timedelta(hours=72),
+    "reset": timedelta(hours=2),
+}
 
 # Secret de signature des jetons. En prod il DOIT être fourni (sinon les jetons
 # ne survivent pas à un redémarrage et n'importe qui pourrait en forger).
@@ -73,6 +82,22 @@ def init_db() -> None:
                 client_email TEXT PRIMARY KEY COLLATE NOCASE,
                 user_id      INTEGER NOT NULL,
                 assigned_at  TEXT NOT NULL
+            )
+            """
+        )
+        # Jetons de mot de passe envoyés par e-mail (création de compte / oubli).
+        # On ne stocke QUE le hash SHA-256 du jeton : même si la base fuite, les
+        # liens en circulation restent inexploitables. Chaque jeton est à usage
+        # unique (used_at) et expire (expires_at).
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS password_tokens (
+                token_hash TEXT PRIMARY KEY,
+                user_id    INTEGER NOT NULL,
+                purpose    TEXT NOT NULL DEFAULT 'reset',
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                used_at    TEXT
             )
             """
         )
@@ -264,6 +289,87 @@ def count_active_admins(exclude_id: int | None = None) -> int:
                 (exclude_id,),
             ).fetchone()
     return int(row["n"])
+
+
+# ── Jetons de mot de passe (liens e-mail) ─────────────────────────────────────
+def _hash_token(raw: str) -> str:
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def create_password_token(user_id: int, purpose: str = "reset") -> str:
+    """Génère un jeton à usage unique pour (re)définir un mot de passe.
+
+    Renvoie le jeton EN CLAIR (à mettre dans le lien e-mail). Seul son hash est
+    stocké. Les éventuels jetons précédents non utilisés du même utilisateur sont
+    invalidés : un seul lien reste valable à la fois.
+    """
+    if purpose not in RESET_TOKEN_TTL:
+        raise ValueError("Type de jeton invalide.")
+    raw = secrets.token_urlsafe(32)
+    now = datetime.now(timezone.utc)
+    expires = now + RESET_TOKEN_TTL[purpose]
+    with _db_lock, _connect() as conn:
+        if conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone() is None:
+            raise ValueError("Utilisateur introuvable.")
+        conn.execute(
+            "DELETE FROM password_tokens WHERE user_id = ? AND used_at IS NULL", (user_id,)
+        )
+        conn.execute(
+            "INSERT INTO password_tokens (token_hash, user_id, purpose, created_at, expires_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (_hash_token(raw), user_id, purpose,
+             now.isoformat(timespec="seconds"), expires.isoformat(timespec="seconds")),
+        )
+    return raw
+
+
+def verify_password_token(raw: str) -> dict | None:
+    """Retourne {user_id, purpose} si le jeton est valide (non utilisé, non expiré)."""
+    if not raw:
+        return None
+    with _db_lock, _connect() as conn:
+        row = conn.execute(
+            "SELECT user_id, purpose, expires_at, used_at FROM password_tokens WHERE token_hash = ?",
+            (_hash_token(raw),),
+        ).fetchone()
+    if row is None or row["used_at"] is not None:
+        return None
+    if datetime.fromisoformat(row["expires_at"]) < datetime.now(timezone.utc):
+        return None
+    return {"user_id": row["user_id"], "purpose": row["purpose"]}
+
+
+def consume_password_token(raw: str, new_password: str) -> dict:
+    """Valide le jeton, change le mot de passe et marque le jeton comme utilisé.
+
+    Atomique : tout se fait sous le même verrou/transaction pour éviter qu'un
+    jeton soit rejoué en parallèle.
+    """
+    if len(new_password) < 8:
+        raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
+    token_hash = _hash_token(raw or "")
+    now = datetime.now(timezone.utc)
+    with _db_lock, _connect() as conn:
+        row = conn.execute(
+            "SELECT user_id, expires_at, used_at FROM password_tokens WHERE token_hash = ?",
+            (token_hash,),
+        ).fetchone()
+        if row is None or row["used_at"] is not None:
+            raise ValueError("Lien invalide ou déjà utilisé.")
+        if datetime.fromisoformat(row["expires_at"]) < now:
+            raise ValueError("Lien expiré. Demandez-en un nouveau.")
+        conn.execute(
+            "UPDATE users SET password_hash = ?, active = 1 WHERE id = ?",
+            (hash_password(new_password), row["user_id"]),
+        )
+        conn.execute(
+            "UPDATE password_tokens SET used_at = ? WHERE token_hash = ?",
+            (now.isoformat(timespec="seconds"), token_hash),
+        )
+        user_id = row["user_id"]
+    user = get_user_by_id(int(user_id))
+    assert user is not None
+    return user
 
 
 # ── Jetons JWT ────────────────────────────────────────────────────────────────

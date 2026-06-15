@@ -7,12 +7,14 @@ from datetime import datetime
 import os
 import re
 import json
+import secrets
 import uuid
 
 import httpx
 
 from processor import load_file, clean_data, compute_vat, build_output, detect_anomalies, validate
 import auth
+import emailer
 from auth import get_current_user, require_admin
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -109,7 +111,9 @@ class LoginPayload(BaseModel):
 
 class CreateUserPayload(BaseModel):
     email: EmailStr
-    password: str
+    # Mot de passe optionnel : si absent, l'utilisateur reçoit un e-mail avec un
+    # lien pour définir lui-même son mot de passe (flux par défaut souhaité).
+    password: str | None = None
     full_name: str = ""
     role: str = "user"
 
@@ -118,6 +122,20 @@ class UpdateUserPayload(BaseModel):
     active: bool | None = None
     role: str | None = None
     password: str | None = None
+
+
+class ChangePasswordPayload(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class ForgotPasswordPayload(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordPayload(BaseModel):
+    token: str
+    new_password: str
 
 
 def _public_user(user: dict) -> dict:
@@ -147,16 +165,28 @@ async def get_users(_: dict = Depends(require_admin)):
 
 @app.post("/auth/users", status_code=201)
 async def add_user(payload: CreateUserPayload, _: dict = Depends(require_admin)):
+    # Sans mot de passe fourni : on crée le compte avec un secret aléatoire
+    # inutilisable, puis on envoie un lien de définition par e-mail. L'utilisateur
+    # ne peut pas se connecter tant qu'il n'a pas défini son mot de passe.
+    send_setup = not (payload.password and payload.password.strip())
+    initial_password = payload.password if not send_setup else secrets.token_urlsafe(24)
     try:
         user = auth.create_user(
             email=payload.email,
-            password=payload.password,
+            password=initial_password,
             full_name=payload.full_name,
             role=payload.role,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return _public_user(user)
+
+    email_sent = False
+    if send_setup:
+        token = auth.create_password_token(user["id"], purpose="setup")
+        email_sent = emailer.send_account_email(
+            user["email"], "setup", full_name=user["full_name"], token=token
+        )
+    return {**_public_user(user), "setup_email_sent": email_sent if send_setup else None}
 
 
 @app.patch("/auth/users/{user_id}")
@@ -193,6 +223,58 @@ async def remove_user(user_id: int, admin: dict = Depends(require_admin)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "Utilisateur supprimé."}
+
+
+# ── Mot de passe : changement & réinitialisation ─────────────────────────────
+@app.post("/auth/change-password")
+async def change_password(payload: ChangePasswordPayload, user: dict = Depends(get_current_user)):
+    """Changement par l'utilisateur connecté : exige le mot de passe actuel."""
+    full = auth.get_user_by_email(user["email"])
+    if full is None or not auth.verify_password(payload.current_password, full["password_hash"]):
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect.")
+    try:
+        auth.update_user(user["id"], password=payload.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    emailer.send_account_email(user["email"], "changed", full_name=user["full_name"])
+    return {"message": "Mot de passe mis à jour."}
+
+
+@app.post("/auth/forgot-password")
+async def forgot_password(payload: ForgotPasswordPayload):
+    """Demande publique de réinitialisation.
+
+    Réponse TOUJOURS identique (200) que l'e-mail existe ou non : on ne révèle pas
+    quels comptes existent (anti-énumération).
+    """
+    user = auth.get_user_by_email(payload.email)
+    if user is not None and user["active"]:
+        token = auth.create_password_token(user["id"], purpose="reset")
+        emailer.send_account_email(user["email"], "reset", full_name=user["full_name"], token=token)
+    return {"message": "Si un compte existe pour cette adresse, un e-mail vient d'être envoyé."}
+
+
+@app.get("/auth/reset-password/{token}")
+async def check_reset_token(token: str):
+    """Vérifie un lien avant d'afficher le formulaire (pré-remplit l'e-mail)."""
+    info = auth.verify_password_token(token)
+    if info is None:
+        raise HTTPException(status_code=400, detail="Lien invalide ou expiré.")
+    target = auth.get_user_by_id(info["user_id"])
+    if target is None:
+        raise HTTPException(status_code=400, detail="Lien invalide ou expiré.")
+    return {"email": target["email"], "purpose": info["purpose"]}
+
+
+@app.post("/auth/reset-password")
+async def reset_password(payload: ResetPasswordPayload):
+    """Définit le nouveau mot de passe depuis un lien e-mail (oubli ou création)."""
+    try:
+        user = auth.consume_password_token(payload.token, payload.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    emailer.send_account_email(user["email"], "changed", full_name=user["full_name"])
+    return {"message": "Mot de passe défini. Vous pouvez vous connecter."}
 
 
 @app.post("/process")
