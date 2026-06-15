@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
@@ -268,7 +268,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        {/* Footer — Workspace card (premium) */}
+        {/* Footer — carte compte (→ Paramètres) + déconnexion séparée */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -277,24 +277,20 @@ export default function Layout({ children }: { children: ReactNode }) {
             padding: "14px 14px 18px",
             borderTop: "1px solid rgba(255,255,255,0.08)",
             position: "relative", zIndex: 1,
+            display: "flex", alignItems: "stretch", gap: 8,
           }}
         >
-          <motion.button
-            onClick={logout}
-            title="Se déconnecter"
-            whileHover={{ y: -1, backgroundColor: "rgba(0,0,0,0.32)" }}
-            transition={{ duration: 0.18, ease: EASE }}
+          {/* Carte identité → ouvre les Paramètres du compte */}
+          <Link
+            to="/compte"
+            title="Paramètres du compte"
             style={{
-              display: "flex", alignItems: "center", gap: 11, width: "100%",
+              display: "flex", alignItems: "center", gap: 11, flex: 1, minWidth: 0,
               padding: "11px 12px", borderRadius: 12,
-              background: "rgba(0,0,0,0.25)",
+              background: location.pathname === "/compte" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.25)",
               border: "1px solid rgba(255,255,255,0.06)",
               backdropFilter: "blur(8px)",
-              cursor: "pointer",
-              position: "relative",
-              overflow: "hidden",
-              textAlign: "left",
-              fontFamily: "inherit",
+              textDecoration: "none",
             }}
           >
             {/* Avatar — initiales de l'utilisateur connecté */}
@@ -318,13 +314,36 @@ export default function Layout({ children }: { children: ReactNode }) {
                 {displayName}
               </div>
               <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.42)", letterSpacing: "0.4px", marginTop: 2, textTransform: "uppercase" }}>
-                {user?.role === "admin" ? "Administrateur" : "Se déconnecter"}
+                {user?.role === "admin" ? "Administrateur" : "Comptable"}
               </div>
             </div>
 
+            {/* Engrenage : indique l'accès aux paramètres */}
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              stroke="rgba(255,255,255,0.45)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"
               style={{ flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </Link>
+
+          {/* Déconnexion — action distincte */}
+          <motion.button
+            onClick={logout}
+            title="Se déconnecter"
+            aria-label="Se déconnecter"
+            whileHover={{ y: -1, backgroundColor: "rgba(0,0,0,0.4)" }}
+            transition={{ duration: 0.18, ease: EASE }}
+            style={{
+              flexShrink: 0, width: 42,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              borderRadius: 12, background: "rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              backdropFilter: "blur(8px)", cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>

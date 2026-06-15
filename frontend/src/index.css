@@ -76,3 +76,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   animation: shimmer 1.4s linear infinite;
   border-radius: 6px;
 }
+
+/* ── Auth (login / mot de passe) ────────────────────────────────────────────
+   Mise en page éditoriale en deux volets : panneau de marque à gauche, formulaire
+   à droite. Le panneau se masque sous 880px (mobile) pour ne garder que le form. */
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+.auth-brand { display: flex; }
+.auth-form-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+@media (max-width: 880px) {
+  .auth-split { grid-template-columns: 1fr; }
+  .auth-brand { display: none; }
+}
+
+.auth-field {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.auth-field::placeholder { color: var(--muted-2); }
+.auth-field:focus {
+  border-color: var(--b-light);
+  box-shadow: 0 0 0 3px rgba(125, 28, 52, 0.12);
+}
+.auth-field:focus-visible { outline: none; }

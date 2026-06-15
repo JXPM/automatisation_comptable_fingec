@@ -4,6 +4,9 @@ import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AccountPage from "./pages/AccountPage";
 import TraitementPage from "./pages/TraitementPage";
 import ClientsPage from "./pages/ClientsPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -30,8 +33,11 @@ export default function App() {
         <ToastProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<TraitementPage />} />
+              <Route path="/compte" element={<AccountPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/historique" element={<HistoriquePage />} />
