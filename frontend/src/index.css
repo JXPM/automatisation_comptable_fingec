@@ -3,9 +3,9 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  --b: #7d1c34;
-  --b-dark: #5e1426;
-  --b-light: #9d2440;
+  --b: #A72231;
+  --b-dark: #7E1626;
+  --b-light: #C13049;
   --b-soft: #fdf6f8;
   --b-tint: #f7e8ec;
 
@@ -21,7 +21,7 @@
   --shadow-sm: 0 1px 2px rgba(15, 20, 33, 0.04), 0 1px 1px rgba(15, 20, 33, 0.03);
   --shadow-md: 0 1px 2px rgba(15, 20, 33, 0.04), 0 8px 24px -8px rgba(15, 20, 33, 0.08);
   --shadow-lg: 0 1px 2px rgba(15, 20, 33, 0.05), 0 18px 40px -12px rgba(15, 20, 33, 0.12);
-  --shadow-glow: 0 8px 28px -10px rgba(125, 28, 52, 0.35);
+  --shadow-glow: 0 8px 28px -10px rgba(167, 34, 49, 0.35);
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -31,8 +31,8 @@ html, body, #root { height: 100%; margin: 0; padding: 0; }
 body {
   font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(125, 28, 52, 0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(125, 28, 52, 0.05), transparent 60%),
+    radial-gradient(1200px 600px at 100% -10%, rgba(167, 34, 49, 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(167, 34, 49, 0.05), transparent 60%),
     var(--bg);
   background-attachment: fixed;
   color: var(--ink);
@@ -52,11 +52,11 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(15, 20, 33, 0.22); background-clip: padding-box; border: 2px solid transparent; }
 
-::selection { background: rgba(125, 28, 52, 0.18); color: var(--b-dark); }
+::selection { background: rgba(167, 34, 49, 0.18); color: var(--b-dark); }
 
 button { font-family: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid rgba(125, 28, 52, 0.45);
+  outline: 2px solid rgba(167, 34, 49, 0.45);
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -112,6 +112,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .auth-field::placeholder { color: var(--muted-2); }
 .auth-field:focus {
   border-color: var(--b-light);
-  box-shadow: 0 0 0 3px rgba(125, 28, 52, 0.12);
+  box-shadow: 0 0 0 3px rgba(167, 34, 49, 0.12);
 }
 .auth-field:focus-visible { outline: none; }

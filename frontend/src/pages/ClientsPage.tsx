@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import StatusBadge from "../components/StatusBadge";
 import { useToast } from "../components/Toast";
+import PageHeader from "../components/PageHeader";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
 import { authFetch } from "../utils/api";
@@ -166,40 +167,30 @@ export default function ClientsPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 4, height: 44, borderRadius: 2,
-              background: `linear-gradient(180deg, ${B} 0%, #9d2440 100%)`,
-              boxShadow: `0 4px 12px -4px ${B}66`,
-            }} />
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
-                Gestion
-              </p>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
-                Mes clients
-              </h1>
-            </div>
-          </div>
-          <button
-            onClick={load}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "9px 16px", borderRadius: 10,
-              border: "1px solid #E2E5EC", background: "white",
-              fontSize: 13, fontWeight: 500, color: "#374151",
-              cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 1px 2px rgba(15,20,33,0.04)",
-              transition: "all 0.15s var(--ease)",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#CBD2DD"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 10px -4px rgba(15,20,33,0.12)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E2E5EC"; e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 1px 2px rgba(15,20,33,0.04)"; }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-            Actualiser
-          </button>
-        </div>
+        <PageHeader
+          eyebrow="Gestion"
+          title="Mes clients"
+          style={{ marginBottom: 0 }}
+          actions={
+            <button
+              onClick={load}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "9px 16px", borderRadius: 10,
+                border: "1px solid #E2E5EC", background: "white",
+                fontSize: 13, fontWeight: 500, color: "#374151",
+                cursor: "pointer", fontFamily: "inherit",
+                boxShadow: "0 1px 2px rgba(15,20,33,0.04)",
+                transition: "all 0.15s var(--ease)",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#CBD2DD"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 10px -4px rgba(15,20,33,0.12)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E2E5EC"; e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 1px 2px rgba(15,20,33,0.04)"; }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+              Actualiser
+            </button>
+          }
+        />
 
         {/* Mini stats inline */}
         {!loading && !error && (

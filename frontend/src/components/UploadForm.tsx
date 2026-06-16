@@ -83,13 +83,13 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
         <div style={{
           width: 52, height: 52, borderRadius: 14,
           background: dragging || fileName
-            ? `linear-gradient(140deg, ${B} 0%, ${"#9d2440"} 100%)`
+            ? `linear-gradient(140deg, ${B} 0%, ${"#C13049"} 100%)`
             : "linear-gradient(140deg, #f3f4f6 0%, #e8e9ec 100%)",
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 14px",
           transition: "all 0.25s var(--ease)",
           boxShadow: dragging || fileName
-            ? "0 8px 22px -8px rgba(125,28,52,0.55), inset 0 1px 0 rgba(255,255,255,0.18)"
+            ? "0 8px 22px -8px rgba(167, 34, 49,0.55), inset 0 1px 0 rgba(255,255,255,0.18)"
             : "0 2px 6px rgba(15,20,33,0.06), inset 0 1px 0 rgba(255,255,255,0.6)",
           transform: dragging ? "scale(1.05)" : "scale(1)",
         }}>
@@ -163,7 +163,7 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
           style={{
             background: loading || !fileName
               ? "linear-gradient(135deg, #d1bdc1 0%, #c2acb1 100%)"
-              : `linear-gradient(135deg, ${B} 0%, #9d2440 100%)`,
+              : `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
             color: "white", border: "none",
             padding: "11px 22px", borderRadius: 10,
             cursor: loading || !fileName ? "default" : "pointer",
@@ -173,7 +173,7 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
             whiteSpace: "nowrap",
             boxShadow: loading || !fileName
               ? "none"
-              : "0 6px 18px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+              : "0 6px 18px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
           }}
           onMouseEnter={(e) => { if (!loading && fileName) e.currentTarget.style.transform = "translateY(-1px)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}

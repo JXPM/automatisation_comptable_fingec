@@ -59,7 +59,7 @@ export default function UnderDevelopment({ children, hint }: Props) {
             padding: "38px 44px 36px",
             maxWidth: 460,
             textAlign: "center",
-            boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 30px 80px -20px rgba(125,28,52,0.20), 0 60px 120px -40px rgba(15,20,33,0.18)",
+            boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 30px 80px -20px rgba(167, 34, 49,0.20), 0 60px 120px -40px rgba(15,20,33,0.18)",
             overflow: "hidden",
           }}
         >
@@ -69,7 +69,7 @@ export default function UnderDevelopment({ children, hint }: Props) {
             transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
             style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 3,
-              background: `linear-gradient(90deg, ${B} 0%, #c0395a 25%, #9d2440 50%, #c0395a 75%, ${B} 100%)`,
+              background: `linear-gradient(90deg, ${B} 0%, #D6435C 25%, #C13049 50%, #D6435C 75%, ${B} 100%)`,
               backgroundSize: "200% 100%",
             }}
           />
@@ -94,7 +94,7 @@ export default function UnderDevelopment({ children, hint }: Props) {
               transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
               style={{
                 width: 64, height: 64, borderRadius: 18,
-                background: `linear-gradient(140deg, ${B} 0%, #9d2440 100%)`,
+                background: `linear-gradient(140deg, ${B} 0%, #C13049 100%)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: `0 14px 32px -10px ${B}88, inset 0 1px 0 rgba(255,255,255,0.25)`,
                 position: "relative",

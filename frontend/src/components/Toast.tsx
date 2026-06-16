@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div style={{
           position: "fixed", bottom: 28, right: 28,
           background: toast.type === "error"
-            ? "linear-gradient(135deg, #7f1d1d 0%, #5e1426 100%)"
+            ? "linear-gradient(135deg, #7f1d1d 0%, #7E1626 100%)"
             : "linear-gradient(135deg, #1a1a2e 0%, #0F1421 100%)",
           color: "white",
           padding: "13px 20px",

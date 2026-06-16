@@ -12,6 +12,9 @@ services:
     environment:
       BACKEND_DATA_DIR: /data
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-}
+      # URL publique de l'app — sert à construire les liens cliquables des e-mails
+      # de compte (invitation / réinitialisation). Sans elle : lien cassé (localhost).
+      APP_BASE_URL: ${APP_BASE_URL:-https://app.fingec.fr}
       # Secret de signature des jetons de session (obligatoire en prod).
       AUTH_SECRET: ${AUTH_SECRET:-}
       # Amorçage du 1er admin au tout premier démarrage (base vide).

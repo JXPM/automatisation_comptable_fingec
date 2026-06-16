@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import { authFetch } from "../utils/api";
 import { useToast } from "../components/Toast";
 import { PasswordField } from "../components/AuthShell";
+import PageHeader from "../components/PageHeader";
 import { initials } from "../utils/clients";
 import { B, B_DARK } from "../theme";
 
@@ -51,14 +52,11 @@ export default function AccountPage() {
   return (
     <div style={{ padding: "36px 44px" }} className="page-enter">
       {/* En-tête */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "var(--ink)", margin: 0, letterSpacing: "-0.5px" }}>
-          Paramètres du compte
-        </h1>
-        <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--muted)" }}>
-          Gérez vos informations et votre mot de passe.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Mon espace"
+        title="Paramètres du compte"
+        subtitle="Gérez vos informations et votre mot de passe."
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 320px) minmax(0, 440px)", gap: 24, alignItems: "start" }}>
         {/* Carte identité */}

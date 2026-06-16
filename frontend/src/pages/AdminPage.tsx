@@ -3,6 +3,7 @@ import { B } from "../theme";
 import { authFetch, type User } from "../utils/api";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/Toast";
+import PageHeader from "../components/PageHeader";
 
 export default function AdminPage() {
   const { user: me } = useAuth();
@@ -48,7 +49,14 @@ export default function AdminPage() {
         showToast(detail?.detail ?? "Échec de la création.", "error");
         return;
       }
-      showToast("Utilisateur créé.", "success");
+      const created = await res.json().catch(() => null);
+      if (created?.setup_email_sent === true) {
+        showToast("Utilisateur créé — e-mail d'invitation envoyé.", "success");
+      } else if (created?.setup_email_sent === false) {
+        showToast("Utilisateur créé, mais l'e-mail d'invitation n'a pas pu partir (voir logs).", "error");
+      } else {
+        showToast("Utilisateur créé.", "success");
+      }
       setEmail(""); setFullName(""); setPassword(""); setRole("user");
       load();
     } finally {
@@ -92,20 +100,7 @@ export default function AdminPage() {
   return (
     <div style={{ padding: "36px 44px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-        <div style={{
-          width: 4, height: 44, borderRadius: 2,
-          background: `linear-gradient(180deg, ${B} 0%, #9d2440 100%)`,
-        }} />
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
-            Administration
-          </p>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
-            Utilisateurs
-          </h1>
-        </div>
-      </div>
+      <PageHeader eyebrow="Administration" title="Utilisateurs" />
 
       {/* Création */}
       <form onSubmit={createUser} style={{
@@ -121,7 +116,7 @@ export default function AdminPage() {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" style={inputStyle} />
         </Field>
         <Field label="Mot de passe">
-          <input type="text" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min. 8 caractères" style={inputStyle} />
+          <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Laisser vide → e-mail d'invitation" style={inputStyle} />
         </Field>
         <Field label="Rôle">
           <select value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle}>
@@ -131,7 +126,7 @@ export default function AdminPage() {
         </Field>
         <button type="submit" disabled={creating} style={{
           padding: "11px 18px", borderRadius: 10, border: "none",
-          background: creating ? "#9CA3AF" : `linear-gradient(95deg, ${B}, #5e1426)`,
+          background: creating ? "#9CA3AF" : `linear-gradient(95deg, ${B}, #7E1626)`,
           color: "white", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
           whiteSpace: "nowrap", height: 40,
         }}>

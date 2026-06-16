@@ -1,5 +1,5 @@
-export const B = "#7d1c34";
-export const B_DARK = "#5e1426";
-export const B_LIGHT = "#9d2440";
+export const B = "#A72231";
+export const B_DARK = "#7E1626";
+export const B_LIGHT = "#C13049";
 
-export const BURGUNDY_RGB: [number, number, number] = [125, 28, 52];
+export const BURGUNDY_RGB: [number, number, number] = [167, 34, 49];

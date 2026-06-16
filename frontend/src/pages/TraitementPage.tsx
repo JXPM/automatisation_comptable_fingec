@@ -4,6 +4,7 @@ import UploadForm from "../components/UploadForm";
 import ResultTable from "../components/ResultTable";
 import ValidationReport from "../components/ValidationReport";
 import AnomalyConsole from "../components/AnomalyConsole";
+import PageHeader from "../components/PageHeader";
 import { B } from "../theme";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -87,34 +88,12 @@ export default function TraitementPage() {
       <div style={{ flex: 1, padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22 }}>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
-          style={{ display: "flex", alignItems: "center", gap: 14 }}
-        >
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay: 0.15, duration: 0.45, ease: EASE }}
-            style={{
-              width: 4, height: 44, borderRadius: 2, transformOrigin: "top",
-              background: `linear-gradient(180deg, ${B} 0%, #9d2440 100%)`,
-              boxShadow: `0 4px 12px -4px ${B}66`,
-            }}
-          />
-          <div>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
-              Préparation des écritures
-            </p>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
-              Automatisation comptable
-            </h1>
-            <p style={{ color: "#6B7280", marginTop: 4, fontSize: 14 }}>
-              Importe un fichier TikTok ou Shopify, choisis le pays, génère l'export Quadra.
-            </p>
-          </div>
-        </motion.div>
+        <PageHeader
+          eyebrow="Préparation des écritures"
+          title="Automatisation comptable"
+          subtitle="Importe un fichier TikTok ou Shopify, choisis le pays, génère l'export Quadra."
+          style={{ marginBottom: 0 }}
+        />
 
         {/* Upload card */}
         <motion.div
@@ -135,7 +114,7 @@ export default function TraitementPage() {
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 3,
-              background: `linear-gradient(90deg, ${B} 0%, #c0395a 25%, #9d2440 50%, #c0395a 75%, ${B} 100%)`,
+              background: `linear-gradient(90deg, ${B} 0%, #D6435C 25%, #C13049 50%, #D6435C 75%, ${B} 100%)`,
               backgroundSize: "200% 100%",
             }}
           />
@@ -207,8 +186,69 @@ export default function TraitementPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* État vide — guide de prise en main, masqué dès qu'un traitement démarre */}
+        <AnimatePresence>
+          {!result && !loading && !error && (
+            <motion.div
+              key="howto"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease: EASE }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 11, margin: "4px 0 14px" }}>
+                <span style={{ width: 4, height: 16, borderRadius: 2, background: B }} />
+                <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#141A26" }}>Comment ça marche</h2>
+              </div>
+              <div style={{
+                background: "white", border: "1px solid #E9EBF0", borderRadius: 16,
+                boxShadow: "0 1px 2px rgba(15,20,33,0.03)",
+                display: "grid", gridTemplateColumns: "repeat(3, 1fr)", overflow: "hidden",
+              }}>
+                {[
+                  { n: 1, title: "Importer le fichier", desc: "Dépose ton export TikTok (.xlsx) ou Shopify (.csv) et choisis le pays.",
+                    icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></> },
+                  { n: 2, title: "Contrôle qualité", desc: "Détection automatique des anomalies et calcul d'un score de fiabilité.",
+                    icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></> },
+                  { n: 3, title: "Export Quadra", desc: "Télécharge le fichier .xlsx prêt à importer dans Quadra.",
+                    icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></> },
+                ].map((s, i) => (
+                  <div key={s.title} style={{
+                    padding: "22px 24px", borderRight: i < 2 ? "1px solid #E9EBF0" : "none",
+                    display: "flex", flexDirection: "column", gap: 13,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                      <span style={{
+                        width: 30, height: 30, borderRadius: "50%", background: B, color: "white",
+                        fontSize: 13, fontWeight: 700, flexShrink: 0,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>{s.n}</span>
+                      <span style={{
+                        width: 32, height: 32, borderRadius: 9, background: "#F3F4F7", color: "#9CA3AF",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
+                      </span>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#141A26", marginBottom: 4 }}>{s.title}</div>
+                      <div style={{ fontSize: 12.5, color: "#6B7280", lineHeight: 1.5 }}>{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 12, fontSize: 12, color: "#9CA3AF" }}>
+                Formats acceptés : TikTok .xlsx (feuille «&nbsp;Statement&nbsp;») · Shopify .csv
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Panneau de vérification — n'apparaît qu'une fois un traitement lancé */}
+      {(result || loading) && (
+        <>
       {/* Panneau anomalies — sticky : reste visible pendant le scroll */}
       <motion.aside
         animate={{ width: panelOpen ? 348 : 0 }}
@@ -265,6 +305,8 @@ export default function TraitementPage() {
           <polyline points="15 18 9 12 15 6"/>
         </motion.svg>
       </motion.button>
+        </>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ export function initials(name: string): string {
   return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-const AVATAR_PALETTE = ["#6d28d9", "#0369a1", "#047857", "#b45309", "#7d1c34", "#0891b2"];
+const AVATAR_PALETTE = ["#6d28d9", "#0369a1", "#047857", "#b45309", "#A72231", "#0891b2"];
 
 export function avatarColor(name: string): string {
   let h = 0;

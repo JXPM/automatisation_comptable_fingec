@@ -126,7 +126,7 @@ export default function AnomalyConsole({ anomalies, loading, activeAnomaly, onSe
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                 <span style={{
                   width: 5, height: 5, borderRadius: 1.5,
-                  background: `linear-gradient(135deg, ${B} 0%, #9d2440 100%)`,
+                  background: `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
                   boxShadow: `0 1px 3px ${B}66`,
                   transform: "rotate(45deg)",
                 }} />

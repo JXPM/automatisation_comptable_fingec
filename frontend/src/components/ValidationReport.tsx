@@ -105,15 +105,15 @@ export default function ValidationReport({ report, output, filename, country, an
               display: "inline-flex", alignItems: "center", gap: 7,
               padding: "9px 18px", borderRadius: 10,
               border: "none",
-              background: `linear-gradient(135deg, ${B} 0%, #9d2440 100%)`,
+              background: `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
               fontSize: 13, fontWeight: 600, color: "white",
               cursor: downloading ? "default" : "pointer", fontFamily: "inherit",
               opacity: downloading ? 0.7 : 1,
-              boxShadow: "0 6px 16px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+              boxShadow: "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
               transition: "transform 0.15s var(--ease), box-shadow 0.2s var(--ease)",
             }}
-            onMouseEnter={(e) => { if (!downloading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(125,28,52,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"; }}
+            onMouseEnter={(e) => { if (!downloading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(167, 34, 49,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"; }}
           >
             {downloading ? (
               <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.5)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />

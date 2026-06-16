@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import StatusBadge from "../components/StatusBadge";
 import { useToast } from "../components/Toast";
+import PageHeader from "../components/PageHeader";
 import { B } from "../theme";
 import { avatarColor, initials, norm } from "../utils/clients";
 import { authFetch } from "../utils/api";
@@ -87,22 +88,11 @@ export default function HistoriquePage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 4, height: 44, borderRadius: 2,
-              background: `linear-gradient(180deg, ${B} 0%, #9d2440 100%)`,
-              boxShadow: `0 4px 12px -4px ${B}66`,
-            }} />
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
-                Mois précédents
-              </p>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
-                Historique
-              </h1>
-            </div>
-          </div>
+        <PageHeader
+          eyebrow="Mois précédents"
+          title="Historique"
+          style={{ marginBottom: 0 }}
+          actions={
           <button
             onClick={load}
             style={{
@@ -120,7 +110,8 @@ export default function HistoriquePage() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
             Actualiser
           </button>
-        </div>
+          }
+        />
       </div>
 
       {/* Alert banner */}

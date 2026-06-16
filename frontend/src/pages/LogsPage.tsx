@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { B } from "../theme";
 import { authFetch, downloadFile } from "../utils/api";
 import { useToast } from "../components/Toast";
+import PageHeader from "../components/PageHeader";
 
 interface LogEntry {
   id: string;
@@ -95,24 +96,11 @@ export default function LogsPage() {
     <div style={{ padding: "36px 44px" }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 4, height: 44, borderRadius: 2,
-              background: `linear-gradient(180deg, ${B} 0%, #9d2440 100%)`,
-              boxShadow: `0 4px 12px -4px ${B}66`,
-            }} />
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
-                Traçabilité
-              </p>
-              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
-                Logs d'activité
-              </h1>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
+      <PageHeader
+        eyebrow="Traçabilité"
+        title="Logs d'activité"
+        actions={
+          <>
             <button
               onClick={load}
               style={{
@@ -168,9 +156,9 @@ export default function LogsPage() {
                 </button>
               </>
             )}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Summary stats */}
       {!loading && logs.length > 0 && (

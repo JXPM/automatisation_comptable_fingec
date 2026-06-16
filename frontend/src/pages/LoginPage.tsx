@@ -24,7 +24,6 @@ export default function LoginPage() {
       navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de la connexion.");
-    } finally {
       setLoading(false);
     }
   };

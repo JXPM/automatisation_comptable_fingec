@@ -88,7 +88,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
       background: "white",
       border: `1px solid ${isFiltering ? "#fca5a5" : "#e8e8ee"}`,
       borderRadius: 10, overflow: "hidden",
-      boxShadow: isFiltering ? "0 0 0 3px #fee2e2" : "0 2px 12px rgba(125,28,52,0.08)",
+      boxShadow: isFiltering ? "0 0 0 3px #fee2e2" : "0 2px 12px rgba(167, 34, 49,0.08)",
       transition: "all 0.2s",
     }}>
       {/* En-tête */}

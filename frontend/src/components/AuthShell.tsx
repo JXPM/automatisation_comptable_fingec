@@ -28,7 +28,7 @@ export default function AuthShell({
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "48px 52px",
-          background: `linear-gradient(160deg, ${B} 0%, ${B_DARK} 60%, #2c0913 100%)`,
+          background: `linear-gradient(160deg, ${B} 0%, ${B_DARK} 60%, #330A14 100%)`,
           color: "#fff",
           overflow: "hidden",
         }}

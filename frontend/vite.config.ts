@@ -18,14 +18,15 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/process':  'http://localhost:8000',
-      '/download': 'http://localhost:8000',
-      '/logs':     'http://localhost:8000',
-      '/auth':     'http://localhost:8000',
-      '/health':   'http://localhost:8000',
+      '/process':  'http://localhost:8001',
+      '/download': 'http://localhost:8001',
+      '/api':      'http://localhost:8001',
+      '/logs':     'http://localhost:8001',
+      '/auth':     'http://localhost:8001',
+      '/health':   'http://localhost:8001',
       // /n8n passe désormais par le backend (qui vérifie le JWT puis relaie vers
       // n8n) : on ne le proxifie plus directement vers le service n8n.
-      '/n8n':      'http://localhost:8000',
+      '/n8n':      'http://localhost:8001',
     },
   },
 })

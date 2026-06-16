@@ -36,10 +36,10 @@ export default function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedLayout />}>
-              <Route path="/" element={<TraitementPage />} />
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/traitement" element={<TraitementPage />} />
               <Route path="/compte" element={<AccountPage />} />
               <Route path="/clients" element={<ClientsPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/historique" element={<HistoriquePage />} />
               <Route path="/mail" element={<MailPage />} />
               <Route path="/logs" element={<LogsPage />} />

@@ -55,11 +55,11 @@ export default function Modal({ open, text, onConfirm, onCancel }: Props) {
             style={{
               padding: "9px 20px", borderRadius: 10,
               border: "none",
-              background: `linear-gradient(135deg, ${B} 0%, #9d2440 100%)`,
+              background: `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
               color: "white", fontSize: 13,
               cursor: "pointer", fontWeight: 600,
               fontFamily: "inherit",
-              boxShadow: "0 6px 16px -6px rgba(125,28,52,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+              boxShadow: "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
               transition: "transform 0.15s var(--ease)",
             }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; }}
