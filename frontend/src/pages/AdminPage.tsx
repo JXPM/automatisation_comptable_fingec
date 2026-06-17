@@ -106,7 +106,7 @@ export default function AdminPage() {
       <form onSubmit={createUser} style={{
         background: "white", borderRadius: 16, border: "1px solid #ECEEF2",
         padding: 20, marginBottom: 24, display: "grid",
-        gridTemplateColumns: "1.4fr 1.2fr 1fr 0.8fr auto", gap: 12, alignItems: "end",
+        gridTemplateColumns: "1.4fr 1.2fr 0.8fr auto", gap: 12, alignItems: "end",
         boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 8px 24px -8px rgba(15,20,33,0.06)",
       }}>
         <Field label="E-mail">
@@ -114,9 +114,6 @@ export default function AdminPage() {
         </Field>
         <Field label="Nom complet">
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" style={inputStyle} />
-        </Field>
-        <Field label="Mot de passe">
-          <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Laisser vide → e-mail d'invitation" style={inputStyle} />
         </Field>
         <Field label="Rôle">
           <select value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle}>
