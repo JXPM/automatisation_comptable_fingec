@@ -34,7 +34,7 @@ def reset_link(token: str) -> str:
 # champs envoyés, ce qui laisse le modèle modifiable sans redéploiement du backend.
 _TEMPLATES = {
     "setup": (
-        "Votre compte Fingec : définissez votre mot de passe",
+        "Bienvenue chez Fingec 🎉 — définissez votre mot de passe",
         "Un compte vient d'être créé pour vous sur l'espace comptabilité Fingec. "
         "Cliquez sur le lien ci-dessous pour définir votre mot de passe.",
     ),

@@ -9,10 +9,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        656,
-        600
+        2192,
+        464
       ],
-      "id": "1bdef465-1d33-476d-ba7f-c9ab84419d1f",
+      "id": "ca122e84-aceb-4064-b004-ba509e8408c7",
       "name": "POST Account-Email",
       "webhookId": "3291793a-e497-4c88-b0e7-50375e685aa3"
     },
@@ -20,22 +20,26 @@
       "parameters": {
         "sendTo": "={{ $json.body.to }}",
         "subject": "={{ $json.body.subject }}",
-        "message": "={{ (() => {\n  const b = $json.body;\n  const name = b.full_name ? b.full_name : '';\n  const greeting = name ? ('Bonjour ' + name + ',') : 'Bonjour,';\n  const labels = { setup: 'Définir mon mot de passe', reset: 'Réinitialiser mon mot de passe' };\n  const btnLabel = labels[b.kind];\n  const hasBtn = b.link && btnLabel;\n  const button = hasBtn\n    ? ('<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:24px 0;\"><tr><td style=\"border-radius:8px;background:#7d1c34;\">'\n       + '<a href=\"' + b.link + '\" style=\"display:inline-block;padding:13px 26px;font-family:\\'Segoe UI\\',Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">'\n       + btnLabel + '</a></td></tr></table>')\n    : '';\n  const fallback = hasBtn\n    ? ('<p style=\"font-size:12px;color:#888;line-height:1.5;\">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br><a href=\"' + b.link + '\" style=\"color:#7d1c34;\">' + b.link + '</a></p>'\n       + '<p style=\"font-size:12px;color:#888;\">Ce lien est valable 1 heure.</p>')\n    : '';\n  return '<div style=\"background:#f4f4f5;padding:24px 0;font-family:\\'Segoe UI\\',Arial,sans-serif;\">'\n    + '<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"center\">'\n    + '<table role=\"presentation\" width=\"560\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #ececec;\">'\n    + '<tr><td style=\"background:#7d1c34;padding:22px 32px;\"><img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\" alt=\"Fingec\" style=\"display:block;\"></td></tr>'\n    + '<tr><td style=\"padding:32px;color:#333;font-size:14px;line-height:1.65;\">'\n    + '<p style=\"margin:0 0 14px;font-size:16px;color:#1a1a1a;\">' + greeting + '</p>'\n    + '<p style=\"margin:0 0 4px;\">' + b.intro + '</p>'\n    + button + fallback\n    + '<p style=\"margin:18px 0 0;\">Cordialement,</p>'\n    + '<table style=\"margin-top:14px;border-top:1px solid #7d1c34;padding-top:12px;width:100%;\"><tr><td>'\n    + '<span style=\"font-size:17px;font-weight:900;color:#7d1c34;\">Cabinet Fingec</span><br>'\n    + '<span style=\"font-size:12px;color:#666;\">12 rue Exemple, 67000 Strasbourg</span><br>'\n    + '<span style=\"font-size:13px;color:#444;\">Cabinet membre de l\\'Ordre des Experts-Comptables d\\'Alsace</span><br>'\n    + '<span style=\"font-size:12px;color:#7d1c34;\">contact@fingec.fr / www.fingec.fr</span>'\n    + '</td></tr></table></td></tr>'\n    + '<tr><td style=\"background:#faf7f8;padding:14px 32px;border-top:1px solid #eee;\"><p style=\"margin:0;font-size:11px;color:#999;\">Cet e-mail vous est adressé car un compte vous concernant a été modifié sur l\\'espace Fingec. Si vous n\\'êtes pas concerné, ignorez ce message.</p></td></tr>'\n    + '</table></td></tr></table></div>';\n})() }}",
-        "options": {}
+        "message": "={{ (() => {\n  const b = $json.body;\n  const BRAND = '#7d1c34';\n  const SIG = '#A72231';\n  const name = b.full_name ? b.full_name : '';\n  const greeting = name ? ('Bonjour ' + name + ' 👋,') : 'Bonjour 👋,';\n  const labels = { setup: 'Définir mon mot de passe', reset: 'Réinitialiser mon mot de passe' };\n  const btnLabel = labels[b.kind];\n  const hasBtn = b.link && btnLabel;\n  let body;\n  if (b.kind === 'setup') {\n    body = '<p style=\"margin:0 0 8px;font-size:20px;font-weight:800;color:' + BRAND + ';\">Bienvenue chez Fingec ! 🎉</p>'\n      + '<p style=\"margin:0 0 12px;\">Toute l\\'équipe est ravie de vous compter parmi nous. ✨</p>'\n      + '<p style=\"margin:0 0 4px;\">Votre compte vient d\\'être créé sur l\\'espace comptabilité Fingec. Il ne reste plus qu\\'une étape pour y accéder : définir votre mot de passe en cliquant sur le bouton ci-dessous. 🔐</p>';\n  } else {\n    body = '<p style=\"margin:0 0 4px;\">' + b.intro + '</p>';\n  }\n  const button = hasBtn ? ('<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:24px 0;\"><tr><td style=\"border-radius:8px;background:' + BRAND + ';\"><a href=\"' + b.link + '\" style=\"display:inline-block;padding:13px 26px;font-family:\\'Segoe UI\\',Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;\">' + btnLabel + '</a></td></tr></table>') : '';\n  const fallback = hasBtn ? ('<p style=\"font-size:12px;color:#888;line-height:1.5;\">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br><a href=\"' + b.link + '\" style=\"color:' + BRAND + ';\">' + b.link + '</a></p><p style=\"font-size:12px;color:#888;\">Ce lien est valable 1 heure. ⏳</p>') : '';\n  const sig = '<table cellpadding=\"0\" cellspacing=\"0\" style=\"border-collapse:collapse;border-top:2px solid ' + SIG + ';padding-top:12px;font-family:\\'Segoe UI\\',Arial,sans-serif;margin-top:16px;\">'\n    + '<tr>'\n    + '<td style=\"vertical-align:top;padding:12px 16px 0 0;\"><img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"88\" alt=\"Fingec\" style=\"display:block;\"></td>'\n    + '<td style=\"vertical-align:top;padding-top:12px;line-height:1.5;\">'\n    + '<div style=\"font-size:18px;font-weight:700;color:' + SIG + ';\">Cabinet Fingec</div>'\n    + '<div style=\"font-size:13px;color:' + SIG + ';\">Cabinet Fingec</div>'\n    + '<div style=\"font-size:12px;color:#555;\">12 rue Exemple, 67000 Strasbourg</div>'\n    + '<div style=\"font-size:12px;color:#444;\">Cabinet membre de l\\'Ordre des Experts-Comptables d\\'Alsace</div>'\n    + '<div style=\"font-size:12px;color:' + SIG + ';\">contact@fingec.fr | www.fingec.fr</div>'\n    + '</td></tr></table>';\n  return '<div style=\"background:#f4f4f5;padding:24px 0;font-family:\\'Segoe UI\\',Arial,sans-serif;\">'\n    + '<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"center\">'\n    + '<table role=\"presentation\" width=\"560\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #ececec;\">'\n    + '<tr><td style=\"background:' + BRAND + ';padding:22px 32px;\"><img src=\"https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png\" width=\"95\" alt=\"Fingec\" style=\"display:block;\"></td></tr>'\n    + '<tr><td style=\"padding:32px;color:#333;font-size:14px;line-height:1.65;\">'\n    + '<p style=\"margin:0 0 14px;font-size:16px;color:#1a1a1a;\">' + greeting + '</p>'\n    + body + button + fallback\n    + '<p style=\"margin:18px 0 0;\">Cordialement,</p>'\n    + sig\n    + '</td></tr>'\n    + '<tr><td style=\"background:#faf7f8;padding:14px 32px;border-top:1px solid #eee;\"><p style=\"margin:0;font-size:11px;color:#999;\">Cet e-mail vous est adressé car un compte vous concernant a été créé ou modifié sur l\\'espace Fingec. Si vous n\\'êtes pas concerné, ignorez ce message.</p></td></tr>'\n    + '</table></td></tr></table></div>';\n})() }}",
+        "options": {
+          "senderName": "Cabinet Fingec",
+          "replyTo": "contact@fingec.fr",
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        880,
-        600
+        2416,
+        464
       ],
-      "id": "1c556101-ffe8-4db1-ac6e-982d91caf834",
+      "id": "4d4c5e1b-970e-4276-b64c-0ecfef0702c8",
       "name": "Send Account Email",
       "webhookId": "0e29f93e-b889-4596-9009-147f44eea72a",
       "credentials": {
         "gmailOAuth2": {
-          "id": "mUbA9Xc8UmEgjyu3",
-          "name": "Gmail account 2"
+          "id": "LTVmFBZ5J2Menx6c",
+          "name": "Gmail account"
         }
       }
     }
