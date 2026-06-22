@@ -1,7 +1,7 @@
 ---
 type: index
 tags: [index, catalogue]
-updated: 2026-06-17
+updated: 2026-06-22
 ---
 
 # 📇 Index du Wiki
@@ -22,7 +22,8 @@ updated: 2026-06-17
 | [[10 - Backend FastAPI]] | Endpoints, config env, upload sécurisé, **proxy n8n authentifié** |
 | [[11 - Authentification & comptes]] | SQLite (users + attribution), bcrypt, JWT, jetons mdp, rôles |
 | [[12 - E-mails de compte (emailer + n8n)]] | Webhook `send-account-email`, modèles, **échec silencieux**, expéditeur |
-| [[13 - Traitement comptable (Quadra)]] | Pipeline pandas, TVA France/Non-France, 8 anomalies, score |
+| [[13 - Traitement comptable (Quadra)]] | Pipeline pandas, TVA France/Non-France, 8 anomalies, score (= **vue contrôle**) |
+| [[14 - Journal d'écritures Quadra]] | **Livrable** : écritures partie double (journal VTE), mapping comptes, équilibre, config `journal_config.json` |
 
 ## 🖥️ Frontend
 | Page | Résumé |
@@ -61,6 +62,6 @@ updated: 2026-06-17
 | [[2026-06-17 - Session debug OAuth & refonte e-mail de compte]] | 2026-06-17 | Diagnostic OAuth, refonte e-mail de compte, incident CI |
 
 ## Métriques (au 2026-06-22)
-- Pages de synthèse : **19** (+[[Conformité RGPD & pack légal]], +[[22 - Design system & stack frontend]], +[[23 - Tableau de bord & écrans de relance]]) · Sources : **1** · Synthèses (`/save`) : 0 · Statut `a-verifier` : 2 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]]).
+- Pages de synthèse : **20** (+[[14 - Journal d'écritures Quadra]]) · Sources : **1** · Synthèses (`/save`) : 0 · Statut `a-verifier` : 2 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]]).
 - Frontmatter `type:` sur toutes les pages (requêtable via Dataview).
 - Commandes actives : `/ingest` · `/query` · `/save` · `/lint` (cf. [[CLAUDE]] §8).

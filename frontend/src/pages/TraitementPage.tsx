@@ -17,6 +17,15 @@ export type Anomaly = {
   detail: string;
 };
 
+export type JournalLine = {
+  code: string;
+  date: string;
+  compte: string;
+  libelle: string;
+  debit: number | null;
+  credit: number | null;
+};
+
 export type ProcessResult = {
   message: string;
   output: string;
@@ -30,6 +39,10 @@ export type ProcessResult = {
   };
   anomalies: Anomaly[];
   preview: Record<string, string | number>[];
+  journal: string | null;
+  journal_preview: JournalLine[];
+  journal_balance: { debit: number; credit: number; balanced: boolean; lines: number } | null;
+  journal_notes: string[];
 };
 
 const SESSION_KEY = "fingec_traitement";
@@ -160,28 +173,43 @@ export default function TraitementPage() {
           {result && (
             <motion.div
               key="result"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45, ease: EASE }}
+              transition={{ duration: 0.3, ease: EASE }}
               style={{ display: "flex", flexDirection: "column", gap: 22 }}
             >
-              <ValidationReport
-                report={result.report}
-                output={result.output}
-                filename={uploadedFilename}
-                country={uploadedCountry}
-                anomalies={result.anomalies}
-                preview={result.preview}
-              />
-              {result.preview.length > 0 && (
-                <ResultTable
-                  rows={result.preview}
-                  highlightedRows={highlightedRows}
-                  rowSeverityMap={rowSeverityMap}
-                  activeSeverity={activeAnomaly !== null ? (result.anomalies[activeAnomaly]?.severity === "error" ? "error" : "warning") : null}
-                  filtered={activeAnomaly !== null}
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, ease: EASE }}
+              >
+                <ValidationReport
+                  report={result.report}
+                  output={result.output}
+                  filename={uploadedFilename}
+                  country={uploadedCountry}
+                  anomalies={result.anomalies}
+                  preview={result.preview}
+                  journal={result.journal}
+                  journalBalance={result.journal_balance}
+                  journalNotes={result.journal_notes}
                 />
+              </motion.div>
+              {result.preview.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: EASE, delay: 0.12 }}
+                >
+                  <ResultTable
+                    rows={result.preview}
+                    highlightedRows={highlightedRows}
+                    rowSeverityMap={rowSeverityMap}
+                    activeSeverity={activeAnomaly !== null ? (result.anomalies[activeAnomaly]?.severity === "error" ? "error" : "warning") : null}
+                    filtered={activeAnomaly !== null}
+                  />
+                </motion.div>
               )}
             </motion.div>
           )}
@@ -211,7 +239,7 @@ export default function TraitementPage() {
                     icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></> },
                   { n: 2, title: "Contrôle qualité", desc: "Détection automatique des anomalies et calcul d'un score de fiabilité.",
                     icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></> },
-                  { n: 3, title: "Export Quadra", desc: "Télécharge le fichier .xlsx prêt à importer dans Quadra.",
+                  { n: 3, title: "Export Quadra", desc: "Télécharge le journal d'écritures (.xlsx) prêt à importer dans Quadra.",
                     icon: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></> },
                 ].map((s, i) => (
                   <div key={s.title} style={{
@@ -251,15 +279,21 @@ export default function TraitementPage() {
         <>
       {/* Panneau anomalies — sticky : reste visible pendant le scroll */}
       <motion.aside
-        animate={{ width: panelOpen ? 348 : 0 }}
-        transition={{ duration: 0.32, ease: EASE }}
+        initial={{ opacity: 0, x: 48 }}
+        animate={{ opacity: 1, x: 0, width: panelOpen ? 348 : 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
         style={{
           position: "sticky",
-          top: 0,
-          height: "100vh",
+          top: 24,
+          alignSelf: "flex-start",          // hauteur = contenu, pas pleine hauteur
+          maxHeight: "calc(100vh - 48px)",  // borne : défilement interne au-delà
+          marginTop: 36,                    // démarre au niveau du contenu (pas collé en haut)
+          marginBottom: 24,
           flexShrink: 0,
           background: "linear-gradient(180deg, #FAFBFC 0%, #F4F5F7 100%)",
-          borderLeft: panelOpen ? "1px solid #ECEEF2" : "none",
+          border: panelOpen ? "1px solid #ECEEF2" : "none",
+          borderRadius: panelOpen ? "16px 0 0 16px" : 0,
+          boxShadow: panelOpen ? "0 1px 2px rgba(15,20,33,0.04), 0 8px 24px -10px rgba(15,20,33,0.10)" : "none",
           overflowY: "auto",
           overflowX: "hidden",
         }}

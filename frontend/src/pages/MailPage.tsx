@@ -170,6 +170,14 @@ export default function MailPage() {
   const removeRecipient = (email: string) =>
     setRecipients(r => r.filter(x => x !== email));
 
+  // Ajout en masse (dédoublonné). Sert aux boutons « tous les … ».
+  const addEmails = (emails: string[]) => {
+    const valid = emails.filter(e => EMAIL_RE.test(e));
+    setRecipients(r => Array.from(new Set([...r, ...valid])));
+  };
+  const collaborateurs = useMemo(() => contacts.filter(c => c.kind === "Collaborateur"), [contacts]);
+  const clientContacts = useMemo(() => contacts.filter(c => c.kind === "Client"), [contacts]);
+
   const send = async () => {
     let finalRecipients = recipients;
     const pending = input.trim();
@@ -211,6 +219,11 @@ export default function MailPage() {
   const fieldStyle: CSSProperties = {
     width: "100%", padding: "10px 12px", border: "1px solid #E5E7EB", borderRadius: 9,
     fontSize: 14, background: "white", outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+  };
+  const quickChip: CSSProperties = {
+    padding: "5px 11px", borderRadius: 99, cursor: "pointer", fontFamily: "inherit",
+    fontSize: 12.5, fontWeight: 500, border: "1px solid #E5E7EB", background: "white",
+    color: "#4B5563", transition: "all 0.14s", whiteSpace: "nowrap",
   };
 
   const showDropdown = focused && matches.length > 0;
@@ -304,8 +317,42 @@ export default function MailPage() {
               </div>
             )}
           </div>
-          <p style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 6 }}>
-            Tape un nom ou une adresse, ou choisis dans le carnet. Entrée pour ajouter.
+
+          {/* Ajout rapide : tous les collaborateurs / clients / tout le monde */}
+          {contacts.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10, alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "#9CA3AF", marginRight: 2 }}>Ajout rapide :</span>
+              {collaborateurs.length > 0 && (
+                <button type="button" onClick={() => addEmails(collaborateurs.map(c => c.Email))} style={quickChip}>
+                  + Tous les collaborateurs ({collaborateurs.length})
+                </button>
+              )}
+              {clientContacts.length > 0 && (
+                <button type="button" onClick={() => addEmails(clientContacts.map(c => c.Email))} style={quickChip}>
+                  + Tous les clients ({clientContacts.length})
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => addEmails(contacts.map(c => c.Email))}
+                style={{ ...quickChip, border: `1px solid ${B}`, background: "#FBE9EC", color: B, fontWeight: 600 }}
+              >
+                + Tout le monde ({contacts.length})
+              </button>
+              {recipients.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setRecipients([])}
+                  style={{ ...quickChip, color: "#9CA3AF" }}
+                >
+                  Tout retirer
+                </button>
+              )}
+            </div>
+          )}
+
+          <p style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 8 }}>
+            Tape un nom ou une adresse, choisis dans le carnet, ou utilise l'ajout rapide. Entrée pour ajouter.
           </p>
         </div>
 

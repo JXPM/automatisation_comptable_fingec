@@ -241,11 +241,11 @@ export default function Layout({ children }: { children: ReactNode }) {
                           layoutId="nav-active-bar"
                           transition={{ type: "spring", stiffness: 380, damping: 32 }}
                           style={{
-                            position: "absolute", left: -1, top: "50%",
-                            width: 3, height: 22, borderRadius: "0 3px 3px 0",
+                            position: "absolute", left: -1, top: 0, bottom: 0,
+                            margin: "auto 0",                       // centrage vertical sans transform
+                            width: 3, height: 18, borderRadius: "0 3px 3px 0",
                             background: "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.55))",
                             boxShadow: "0 0 12px rgba(255,255,255,0.5)",
-                            transform: "translateY(-50%)",
                             zIndex: 1,
                           }}
                         />

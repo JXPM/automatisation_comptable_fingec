@@ -1,0 +1,26 @@
+{
+  "_comment": "Copier ce fichier en `journal_config.json` (même dossier) pour surcharger les comptes du journal SANS toucher au code. On peut ne redéfinir qu'une seule valeur : le reste reste sur les défauts de journal.py. Clé = 'plateforme|régime' (régime = 'france' ou 'non-france'). Le bloc 'comptes' est fusionné compte par compte. Alternative : variable d'environnement JOURNAL_CONFIG_FILE pointant vers ce JSON.",
+
+  "tiktok|france": {
+    "libelle": "F TIKTOK - FRANCE",
+    "vat_rate": 0.20,
+    "comptes": {
+      "encaissement": "90TIKTFR",
+      "ventes": "70721000",
+      "port": "70800000",
+      "tva_collectee": "44572000",
+      "commission": "62220000",
+      "tva_deductible": "44566000",
+      "ajustement": "471000"
+    }
+  },
+
+  "tiktok|non-france": {
+    "libelle": "F TIKTOK - EXPORT",
+    "vat_rate": 0.0,
+    "comptes": {
+      "ventes": "70722000",
+      "ajustement": "471000"
+    }
+  }
+}

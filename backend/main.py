@@ -14,6 +14,7 @@ import uuid
 import httpx
 
 from processor import load_file, clean_data, compute_vat, build_output, detect_anomalies, validate
+from journal import build_journal, write_journal_xlsx, journal_totals
 import auth
 import emailer
 from auth import get_current_user, require_admin
@@ -360,6 +361,7 @@ async def reset_password(payload: ResetPasswordPayload):
 async def process_file(
     file: UploadFile = File(...),
     country: str = Form("France"),
+    entreprise: str = Form(""),
     user: dict = Depends(get_current_user),
 ):
     safe_name = _safe_filename(file.filename)
@@ -395,6 +397,34 @@ async def process_file(
     output_path = _resolve_within(OUTPUT_DIR, output_filename)
     out.to_excel(output_path, index=False)
 
+    # ── Journal d'écritures (format Quadra) ──────────────────────
+    # Détection de plateforme : CSV = Shopify, Excel = TikTok (cf. CLAUDE.md).
+    # Le modèle d'écritures Shopify n'est pas encore défini : on ne génère le
+    # journal que pour TikTok pour l'instant.
+    platform = "shopify" if safe_name.lower().endswith(".csv") else "tiktok"
+    journal_filename: str | None = None
+    journal_preview: list[dict] = []
+    journal_notes: list[str] = []
+    journal_balance: dict | None = None
+    if platform == "tiktok":
+        try:
+            journal_lines, journal_notes = build_journal(df_clean, country, platform="tiktok")
+            journal_filename = f"journal_{Path(safe_name).stem}.xlsx"
+            journal_path = _resolve_within(OUTPUT_DIR, journal_filename)
+            entreprise_label = entreprise.strip() or "Journal des ventes"
+            write_journal_xlsx(
+                journal_lines, journal_path,
+                entreprise=entreprise_label, platform="TIKTOK", country=country,
+            )
+            journal_balance = journal_totals(journal_lines)
+            journal_preview = journal_lines
+        except Exception as e:
+            journal_notes = [f"Journal non généré : {e}"]
+    else:
+        journal_notes = [
+            "Le modèle d'écritures Shopify n'est pas encore défini : journal non généré."
+        ]
+
     preview = out.copy()
     preview["date"] = preview["date"].astype(str)
     preview_data = preview.to_dict(orient="records")
@@ -411,6 +441,7 @@ async def process_file(
         "warnings":          report["warnings"],
         "anomaly_count":     report["anomaly_count"],
         "output_file":       output_filename,
+        "journal_file":      journal_filename,
     })
 
     return {
@@ -419,6 +450,10 @@ async def process_file(
         "report":   report,
         "anomalies": anomalies,
         "preview":  preview_data,
+        "journal":  journal_filename,
+        "journal_preview": journal_preview,
+        "journal_balance": journal_balance,
+        "journal_notes": journal_notes,
     }
 
 

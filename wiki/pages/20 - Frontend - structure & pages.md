@@ -10,20 +10,21 @@ SPA **React 19 + Vite + TypeScript** (`frontend/`). Styling **inline + tokens CS
 
 ## Organisation (`frontend/src`)
 - **`pages/`** — une page par route (voir tableau).
-- **`components/`** — shell (`Layout` = sidebar bordeaux animée, `Topbar` = avatar + menu compte/déconnexion), `PageHeader` (en-tête unifié Playfair), `AuthShell` (+ `Field`/`PasswordField`/`SubmitButton`/`Alert`), `Modal`, `Toast`, `UploadForm`, `ResultTable`, `ValidationReport`, `AnomalyConsole`, `StatusBadge`, `UnderDevelopment`.
+- **`components/`** — shell (`Layout` = sidebar bordeaux animée, `Topbar` = avatar + menu compte/déconnexion), `PageHeader` (en-tête unifié Playfair), `AuthShell` (+ `Field`/`PasswordField`/`SubmitButton`/`Alert` ; icônes **lucide-react**, carrousel), `LegalLayout` (coquille pages légales publiques), `Modal`, `Toast`, `UploadForm` (dont champ **« Société / dossier »** → en-tête du journal), `ResultTable`, `ValidationReport` (boutons **Journal Quadra** / Synthèse / PDF + badge d'équilibre), `AnomalyConsole`, `StatusBadge`, `UnderDevelopment`.
 - **`auth/`** — `AuthContext` (user + token, revalide `/auth/me` au montage, déconnexion auto sur 401), `ProtectedRoute` (`adminOnly`).
 - **`utils/`** — `api.ts` (`authFetch`, session localStorage, `downloadFile`), `cabinet.ts` (coordonnées signature + logo), `clients.ts` (`norm`/`initials`/`avatarColor`), `exportPdf.ts` (rapport PDF).
 
 ## Routes (`App.tsx`)
-Publiques : `/login`, `/forgot-password`, `/reset-password`. Les autres sont sous `ProtectedLayout` (session requise + `Layout`).
+Publiques : `/login`, `/forgot-password`, `/reset-password`, **`/mentions-legales`**, **`/confidentialite`**, **`/cgu`** (pages légales, voir [[Conformité RGPD & pack légal]]). Les autres sont sous `ProtectedLayout` (session requise + `Layout`).
 
 | Page | Route | Rôle |
 |---|---|---|
-| `LoginPage` | `/login` | connexion (AuthShell éditorial) |
+| `LoginPage` | `/login` | connexion — **AuthShell refondu (2026-06-22)** : formulaire à gauche (logo centré, icônes lucide, « Se souvenir de moi », flèche), volet droit « onboarding » bordeaux (lampe suspendue, dashboard flottant, carrousel framer-motion). « Se souvenir de moi » **réel** (localStorage si coché, sessionStorage sinon, via `setSession(…, remember)`). |
 | `ForgotPasswordPage` | `/forgot-password` | demande de réinitialisation |
 | `ResetPasswordPage` | `/reset-password?token=` | définition/réinit du mdp (lien e-mail) |
+| `LegalNoticePage` / `PrivacyPage` / `TermsPage` | `/mentions-legales`, `/confidentialite`, `/cgu` | pages légales publiques (coquille `LegalLayout`), reprises du pack `legal/` |
 | `DashboardPage` | `/` | accueil SaaS (KPIs, actions, activité) — [[23 - Tableau de bord & écrans de relance]] |
-| `TraitementPage` | `/traitement` | upload comptable → aperçu/score/anomalies/téléchargement [[13 - Traitement comptable (Quadra)]] |
+| `TraitementPage` | `/traitement` | upload comptable → aperçu/score/anomalies + **journal Quadra** [[13 - Traitement comptable (Quadra)]], [[14 - Journal d'écritures Quadra]] |
 | `AccountPage` | `/compte` | paramètres du compte (identité + changer mdp) |
 | `ClientsPage` | `/clients` | liste clients (filtrée), actions de relance [[23 - Tableau de bord & écrans de relance]] |
 | `HistoriquePage` | `/historique` | suivi des envois par mois [[23 - Tableau de bord & écrans de relance]] |
@@ -39,8 +40,8 @@ Publiques : `/login`, `/forgot-password`, `/reset-password`. Les autres sont sou
 - **`Topbar`** : avatar (initiales) en haut-droite → menu (Paramètres du compte, Se déconnecter). La déconnexion a quitté la sidebar pour la topbar (todo réalisé). [[refonte-ui-todo]].
 
 ## Accès API (`utils/api.ts`)
-- `API_URL = import.meta.env.VITE_API_URL ?? ""` — vide en dév (proxy Vite), défini en prod. ⚠️ Un commentaire du fichier évoque encore « Vercel » : périmé, la prod est sur **VPS Hostinger/Caddy** ([[02 - Architecture globale]]).
-- `authFetch` ajoute le **JWT Bearer** (`fingec_token` en localStorage) et force `cache: "no-store"` ; un **401 déconnecte** (clearSession + handler). Session : `setSession`/`clearSession`/`getStoredUser`.
+- `API_URL = import.meta.env.VITE_API_URL ?? ""` — vide en dév (proxy Vite **vers `:8001`**), défini en prod (VPS Hostinger/Caddy, commentaire « Vercel » corrigé). ([[02 - Architecture globale]]).
+- `authFetch` ajoute le **JWT Bearer** et force `cache: "no-store"` ; un **401 déconnecte**. Session : `setSession(token, user, remember=true)` choisit **localStorage** (persistant) ou **sessionStorage** (durée de l'onglet) ; `getToken`/`getStoredUser`/`clearSession` lisent/purgent les **deux** stores.
 - `downloadFile` télécharge via fetch+blob (un lien `<a>` ne porte pas le header Bearer).
 - Données clients/historique : `/api/clients`, `/api/historique` (filtrés serveur). Actions relance : `/n8n/webhook/...` (proxy authentifié). Composer un mail : `POST /n8n/webhook/send-mail`.
 

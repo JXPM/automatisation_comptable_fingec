@@ -11,11 +11,15 @@ type Props = {
   country: string;
   anomalies: Anomaly[];
   preview: ProcessResult["preview"];
+  journal?: string | null;
+  journalBalance?: ProcessResult["journal_balance"];
+  journalNotes?: string[];
 };
 
-export default function ValidationReport({ report, output, filename, country, anomalies, preview }: Props) {
+export default function ValidationReport({ report, output, filename, country, anomalies, preview, journal, journalBalance, journalNotes }: Props) {
   const [exporting, setExporting] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingJournal, setDownloadingJournal] = useState(false);
   const { showToast } = useToast();
 
   const handleExcel = async () => {
@@ -26,6 +30,18 @@ export default function ValidationReport({ report, output, filename, country, an
       showToast(err instanceof Error ? err.message : "Échec du téléchargement.", "error");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleJournal = async () => {
+    if (!journal) return;
+    setDownloadingJournal(true);
+    try {
+      await downloadFile(journal);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Échec du téléchargement.", "error");
+    } finally {
+      setDownloadingJournal(false);
     }
   };
 
@@ -97,26 +113,26 @@ export default function ValidationReport({ report, output, filename, country, an
             {exporting ? "Génération…" : "Exporter PDF"}
           </button>
 
-          {/* Bouton Excel */}
+          {/* Bouton Synthèse (.xlsx) — vue de contrôle, secondaire */}
           <button
             onClick={handleExcel}
             disabled={downloading}
+            title="Tableau de synthèse (contrôle qualité)"
             style={{
               display: "inline-flex", alignItems: "center", gap: 7,
-              padding: "9px 18px", borderRadius: 10,
-              border: "none",
-              background: `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
-              fontSize: 13, fontWeight: 600, color: "white",
+              padding: "9px 16px", borderRadius: 10,
+              border: "1px solid #E2E5EC", background: "white",
+              fontSize: 13, fontWeight: 500, color: "#374151",
               cursor: downloading ? "default" : "pointer", fontFamily: "inherit",
-              opacity: downloading ? 0.7 : 1,
-              boxShadow: "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
-              transition: "transform 0.15s var(--ease), box-shadow 0.2s var(--ease)",
+              boxShadow: "0 1px 2px rgba(15,20,33,0.05)",
+              opacity: downloading ? 0.6 : 1,
+              transition: "all 0.15s var(--ease)",
             }}
-            onMouseEnter={(e) => { if (!downloading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(167, 34, 49,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"; }}
+            onMouseEnter={(e) => { if (!downloading) { e.currentTarget.style.borderColor = "#CBD2DD"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E2E5EC"; e.currentTarget.style.transform = ""; }}
           >
             {downloading ? (
-              <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.5)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+              <span style={{ width: 14, height: 14, border: "2px solid #D1D5DB", borderTopColor: B, borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
             ) : (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -124,10 +140,69 @@ export default function ValidationReport({ report, output, filename, country, an
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
             )}
-            {downloading ? "Téléchargement…" : "Télécharger Excel"}
+            {downloading ? "…" : "Synthèse (.xlsx)"}
           </button>
+
+          {/* Bouton Journal Quadra — livrable principal (écritures) */}
+          {journal && (
+            <button
+              onClick={handleJournal}
+              disabled={downloadingJournal}
+              title="Journal d'écritures comptables prêt à importer dans Quadra"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 7,
+                padding: "9px 18px", borderRadius: 10,
+                border: "none",
+                background: `linear-gradient(135deg, ${B} 0%, #C13049 100%)`,
+                fontSize: 13, fontWeight: 600, color: "white",
+                cursor: downloadingJournal ? "default" : "pointer", fontFamily: "inherit",
+                opacity: downloadingJournal ? 0.7 : 1,
+                boxShadow: "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+                transition: "transform 0.15s var(--ease), box-shadow 0.2s var(--ease)",
+              }}
+              onMouseEnter={(e) => { if (!downloadingJournal) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 22px -6px rgba(167, 34, 49,0.55), inset 0 1px 0 rgba(255,255,255,0.2)"; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 6px 16px -6px rgba(167, 34, 49,0.5), inset 0 1px 0 rgba(255,255,255,0.15)"; }}
+            >
+              {downloadingJournal ? (
+                <span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.5)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              )}
+              {downloadingJournal ? "Téléchargement…" : "Journal Quadra"}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Équilibre de l'écriture + notes du journal */}
+      {(journalBalance || (journalNotes && journalNotes.length > 0)) && (
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 18 }}>
+          {journalBalance && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "5px 11px", borderRadius: 99, fontSize: 12, fontWeight: 600,
+              background: journalBalance.balanced ? "#F0FDF4" : "#FEF2F2",
+              border: `1px solid ${journalBalance.balanced ? "#86EFAC" : "#FCA5A5"}`,
+              color: journalBalance.balanced ? "#15803D" : "#B91C1C",
+            }}>
+              {journalBalance.balanced ? "✓ Écriture équilibrée" : "⚠ Écriture déséquilibrée"}
+              {" · "}{journalBalance.lines} lignes · Débit {journalBalance.debit.toFixed(2)} = Crédit {journalBalance.credit.toFixed(2)}
+            </span>
+          )}
+          {(journalNotes ?? []).map((n, i) => (
+            <span key={i} style={{
+              padding: "5px 11px", borderRadius: 8, fontSize: 12,
+              background: "#FFFBEB", border: "1px solid #FDE68A", color: "#92400E",
+            }}>
+              {n}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 20 }}>

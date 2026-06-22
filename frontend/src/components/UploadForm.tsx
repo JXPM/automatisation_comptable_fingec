@@ -14,6 +14,7 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [country, setCountry] = useState("France");
+  const [entreprise, setEntreprise] = useState("");
   const [dragging, setDragging] = useState(false);
 
   const handleFile = (file: File | undefined) => {
@@ -39,6 +40,7 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
     const formData = new FormData();
     formData.append("file", file);
     formData.append("country", country);
+    formData.append("entreprise", entreprise.trim());
 
     onLoading(true);
     try {
@@ -121,6 +123,29 @@ export default function UploadForm({ onResult, onError, onLoading, loading }: Pr
           accept=".csv,.xlsx,.xls"
           style={{ display: "none" }}
           onChange={(e) => handleFile(e.target.files?.[0])}
+        />
+      </div>
+
+      {/* Société / dossier (en-tête du journal) — facultatif */}
+      <div>
+        <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 7 }}>
+          Société / dossier <span style={{ textTransform: "none", fontWeight: 500, color: "#9CA3AF" }}>· facultatif, apparaît en en-tête du journal</span>
+        </label>
+        <input
+          type="text"
+          value={entreprise}
+          onChange={(e) => setEntreprise(e.target.value)}
+          placeholder="ex. LE PRODUIT EN LIGNE — 69720 St Laurent de Mure"
+          style={{
+            width: "100%", padding: "10px 14px",
+            border: "1px solid #E2E5EC", borderRadius: 10,
+            fontFamily: "inherit", fontSize: 13.5, background: "white",
+            outline: "none", color: "#0F1421",
+            boxShadow: "0 1px 2px rgba(15,20,33,0.04)",
+            transition: "border-color 0.15s var(--ease), box-shadow 0.15s var(--ease)",
+          }}
+          onFocus={(e) => { e.target.style.borderColor = B; e.target.style.boxShadow = `0 0 0 3px ${B}1a`; }}
+          onBlur={(e) => { e.target.style.borderColor = "#E2E5EC"; e.target.style.boxShadow = "0 1px 2px rgba(15,20,33,0.04)"; }}
         />
       </div>
 
