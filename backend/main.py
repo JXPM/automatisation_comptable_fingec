@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, EmailStr
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
+import asyncio
 import os
 import re
 import json
@@ -31,6 +32,14 @@ ALLOWED_ORIGINS = [
 
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MiB
 _SAFE_NAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+# ── Conservation des données (RGPD : minimisation) ───────────────────────────
+# Au-delà de ces durées, les fichiers de sortie et les entrées de journal sont
+# purgés automatiquement. Configurable par variable d'environnement.
+# 0 = désactiver la purge (conservation illimitée).
+OUTPUT_RETENTION_DAYS = int(os.environ.get("OUTPUT_RETENTION_DAYS", "90"))
+LOGS_RETENTION_DAYS   = int(os.environ.get("LOGS_RETENTION_DAYS", "365"))
+PURGE_INTERVAL_SECONDS = 24 * 60 * 60  # passage quotidien
 
 # URL interne du service n8n (résolu par le DNS Docker sur le réseau partagé).
 # Le frontend appelle /n8n/... → on relaie ici APRÈS vérification du JWT, pour que
@@ -71,8 +80,10 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-def _startup() -> None:
+async def _startup() -> None:
     auth.init_db()
+    # Lance la purge de conservation en tâche de fond (1er passage immédiat).
+    asyncio.create_task(_purge_loop())
 
 UPLOAD_DIR = DATA_DIR / "tmp_upload"
 OUTPUT_DIR = DATA_DIR / "output"
@@ -95,6 +106,74 @@ def _append_log(entry: dict) -> None:
     logs.insert(0, entry)          # plus récent en premier
     logs = logs[:500]              # garder max 500 entrées
     LOGS_FILE.write_text(json.dumps(logs, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+# ── Purge de conservation (RGPD) ─────────────────────────────────────────────
+def _purge_outputs() -> int:
+    """Supprime les fichiers de sortie plus vieux que OUTPUT_RETENTION_DAYS.
+
+    Les exports `.xlsx` n'ont pas vocation à être conservés indéfiniment : ils
+    sont régénérables depuis les fichiers sources du cabinet. Renvoie le nombre
+    de fichiers supprimés. 0 jour = purge désactivée.
+    """
+    if OUTPUT_RETENTION_DAYS <= 0:
+        return 0
+    cutoff = datetime.now().timestamp() - OUTPUT_RETENTION_DAYS * 86400
+    removed = 0
+    for f in OUTPUT_DIR.glob("*.xlsx"):
+        try:
+            if f.stat().st_mtime < cutoff:
+                f.unlink(missing_ok=True)
+                removed += 1
+        except OSError:
+            continue
+    return removed
+
+
+def _purge_logs() -> int:
+    """Élague les entrées de journal plus vieilles que LOGS_RETENTION_DAYS.
+
+    Complète le plafond de 500 entrées par une borne temporelle. Renvoie le
+    nombre d'entrées supprimées. 0 jour = purge désactivée.
+    """
+    if LOGS_RETENTION_DAYS <= 0:
+        return 0
+    cutoff = datetime.now() - timedelta(days=LOGS_RETENTION_DAYS)
+    logs = _read_logs()
+    kept = []
+    for entry in logs:
+        try:
+            if datetime.fromisoformat(entry.get("timestamp", "")) >= cutoff:
+                kept.append(entry)
+        except (ValueError, TypeError):
+            kept.append(entry)  # entrée sans timestamp lisible : on la garde
+    removed = len(logs) - len(kept)
+    if removed:
+        LOGS_FILE.write_text(json.dumps(kept, ensure_ascii=False, indent=2), encoding="utf-8")
+    return removed
+
+
+def _run_purge() -> None:
+    """Un passage de purge complet : sorties, journaux, jetons expirés."""
+    out = _purge_outputs()
+    logs = _purge_logs()
+    tokens = auth.purge_expired_tokens()
+    if out or logs or tokens:
+        print(
+            f"🧹 Purge conservation : {out} export(s), {logs} journal(aux), "
+            f"{tokens} jeton(s) supprimé(s).",
+            flush=True,
+        )
+
+
+async def _purge_loop() -> None:
+    """Tâche de fond : purge au démarrage puis tous les jours."""
+    while True:
+        try:
+            await asyncio.to_thread(_run_purge)
+        except Exception as e:  # une purge ratée ne doit jamais tuer l'app
+            print(f"⚠️  Purge de conservation échouée : {e}", flush=True)
+        await asyncio.sleep(PURGE_INTERVAL_SECONDS)
 
 
 # ── Santé (public, utilisé par le healthcheck Docker) ────────────────────────

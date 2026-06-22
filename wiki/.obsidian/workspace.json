@@ -1,0 +1,201 @@
+{
+  "main": {
+    "id": "dd1a18b2195749a2",
+    "type": "split",
+    "children": [
+      {
+        "id": "eb432a939b00f848",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ed1921823eacb472",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "cd4c6e4de788a25b",
+    "type": "split",
+    "children": [
+      {
+        "id": "06fef6229d756543",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b7151dc1cba9bd73",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "abebfb9a789d59e5",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "4aebe678349ea20a",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0f734f3f84c3e4dd",
+    "type": "split",
+    "children": [
+      {
+        "id": "476d1de6c56fa6f8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ac07d0d5f3e4aa0c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "pages/02 - Architecture globale.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 02 - Architecture globale"
+            }
+          },
+          {
+            "id": "ef6e6e1eccf44598",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "pages/02 - Architecture globale.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 02 - Architecture globale"
+            }
+          },
+          {
+            "id": "f0f4d142fe6d2a8a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "1ca59ee13f3d074b",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "52187a792760c9b8",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "pages/02 - Architecture globale.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 02 - Architecture globale"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "ed1921823eacb472",
+  "lastOpenFiles": [
+    "log.md.tmp.1492826.6d86c136599b",
+    "pages/Conformité RGPD & pack légal.md.tmp.1492826.edd0149ff694",
+    "log.md.tmp.1492826.7476805c93a3",
+    "log.md.tmp.1492826.3bf625573281",
+    "pages/21 - Signature e-mail & charte Fingec.md.tmp.1492826.7a19cf1cb8f5",
+    "pages/21 - Signature e-mail & charte Fingec.md.tmp.1492826.f1201f559dd2",
+    "log.md.tmp.1492826.b5a6471ba702",
+    "pages/21 - Signature e-mail & charte Fingec.md.tmp.1492826.88cee16c92bc",
+    "pages/21 - Signature e-mail & charte Fingec.md.tmp.1492826.7e9e854b7a65",
+    "index.md.tmp.1492826.bbc5c8eec8f8",
+    "log.md.tmp.1492826.97d4c5857c32",
+    "pages/23 - Tableau de bord & écrans de relance.md",
+    "pages/22 - Design system & stack frontend.md",
+    "index.md",
+    "pages/01 - Vue d'ensemble.md",
+    "sources/2026-06-17 - Session debug OAuth & refonte e-mail de compte.md"
+  ]
+}

@@ -14,6 +14,9 @@ import HistoriquePage from "./pages/HistoriquePage";
 import MailPage from "./pages/MailPage";
 import LogsPage from "./pages/LogsPage";
 import AdminPage from "./pages/AdminPage";
+import LegalNoticePage from "./pages/legal/LegalNoticePage";
+import PrivacyPage from "./pages/legal/PrivacyPage";
+import TermsPage from "./pages/legal/TermsPage";
 
 // Layout protégé : exige une session, puis rend les pages via <Outlet/>.
 function ProtectedLayout() {
@@ -35,6 +38,10 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            {/* Pages légales publiques (accessibles sans authentification) */}
+            <Route path="/mentions-legales" element={<LegalNoticePage />} />
+            <Route path="/confidentialite" element={<PrivacyPage />} />
+            <Route path="/cgu" element={<TermsPage />} />
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/traitement" element={<TraitementPage />} />

@@ -1,7 +1,9 @@
 // Base URL of the FastAPI backend.
 // - Dev: empty → Vite proxy (vite.config.ts) forwards /process, /download, /logs,
 //   /auth, /n8n to localhost:8000
-// - Prod: set VITE_API_URL on Vercel to point at the deployed backend
+// - Prod: vide aussi — le frontend et l'API sont servis par le même Caddy sur le
+//   VPS Hostinger (chemins relatifs). VITE_API_URL ne sert qu'à pointer un backend
+//   distant si besoin. Voir docker-compose.yml / deploy/Caddyfile.fingec.snippet.
 export const API_URL: string = import.meta.env.VITE_API_URL ?? "";
 
 const TOKEN_KEY = "fingec_token";
@@ -17,11 +19,11 @@ export interface User {
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
 }
 
 export function getStoredUser(): User | null {
-  const raw = localStorage.getItem(USER_KEY);
+  const raw = localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as User;
@@ -30,14 +32,23 @@ export function getStoredUser(): User | null {
   }
 }
 
-export function setSession(token: string, user: User): void {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+// `remember` vrai → session persistante (localStorage) ; faux → durée de l'onglet
+// (sessionStorage, effacé à la fermeture du navigateur). On purge l'autre store
+// pour éviter qu'un ancien jeton ne subsiste.
+export function setSession(token: string, user: User, remember = true): void {
+  const store = remember ? localStorage : sessionStorage;
+  const other = remember ? sessionStorage : localStorage;
+  other.removeItem(TOKEN_KEY);
+  other.removeItem(USER_KEY);
+  store.setItem(TOKEN_KEY, token);
+  store.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function clearSession(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(USER_KEY);
 }
 
 // Le AuthProvider enregistre ici un callback pour réagir à un 401 (déconnexion).

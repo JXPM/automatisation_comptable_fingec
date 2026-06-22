@@ -372,6 +372,21 @@ def consume_password_token(raw: str, new_password: str) -> dict:
     return user
 
 
+def purge_expired_tokens() -> int:
+    """Supprime les jetons de mot de passe expirés ou déjà utilisés.
+
+    Hygiène RGPD (minimisation) : ces lignes ne servent plus à rien une fois le
+    jeton consommé ou périmé. Renvoie le nombre de lignes supprimées.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    with _db_lock, _connect() as conn:
+        cur = conn.execute(
+            "DELETE FROM password_tokens WHERE used_at IS NOT NULL OR expires_at < ?",
+            (now_iso,),
+        )
+        return cur.rowcount
+
+
 # ── Jetons JWT ────────────────────────────────────────────────────────────────
 def create_access_token(user: dict) -> str:
     now = datetime.now(timezone.utc)

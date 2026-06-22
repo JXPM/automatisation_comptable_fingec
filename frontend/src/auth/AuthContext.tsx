@@ -12,7 +12,7 @@ import {
 interface AuthState {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string, remember?: boolean) => Promise<User>;
   logout: () => void;
 }
 
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, remember = true) => {
     const res = await fetch(`${(import.meta.env.VITE_API_URL ?? "")}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(detail?.detail ?? "Échec de la connexion.");
     }
     const data = await res.json();
-    setSession(data.access_token, data.user);
+    setSession(data.access_token, data.user, remember);
     setUser(data.user);
     return data.user as User;
   };

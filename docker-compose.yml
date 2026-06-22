@@ -22,6 +22,9 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       # URL interne du service n8n (résolu par le DNS Docker via le nom du conteneur).
       N8N_BASE_URL: ${N8N_BASE_URL:-http://fingec-n8n:5678}
+      # Conservation RGPD : purge auto des exports / journaux (0 = désactivé).
+      OUTPUT_RETENTION_DAYS: ${OUTPUT_RETENTION_DAYS:-90}
+      LOGS_RETENTION_DAYS: ${LOGS_RETENTION_DAYS:-365}
     depends_on:
       - n8n
     volumes:

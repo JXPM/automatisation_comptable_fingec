@@ -11,7 +11,7 @@ export interface CabinetInfo {
 const KEY = "fingec_cabinet";
 
 export const DEFAULT_CABINET: CabinetInfo = {
-  adresse: "12 rue Exemple, 67000 Strasbourg",
+  adresse: "6 rue Frédéric Chopin, 67118 Geispolsheim",
   telephone: "",
   ordre: "Cabinet membre de l'Ordre des Experts-Comptables d'Alsace",
   contact: "contact@fingec.fr | www.fingec.fr",
