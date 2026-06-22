@@ -24,6 +24,7 @@ updated: 2026-06-22
 | [[12 - E-mails de compte (emailer + n8n)]] | Webhook `send-account-email`, modèles, **échec silencieux**, expéditeur |
 | [[13 - Traitement comptable (Quadra)]] | Pipeline pandas, TVA France/Non-France, 8 anomalies, score (= **vue contrôle**) |
 | [[14 - Journal d'écritures Quadra]] | **Livrable** : écritures partie double (journal VTE), mapping comptes, équilibre, config `journal_config.json` |
+| [[16 - Outils en ligne de commande (cli & manage)]] | `cli.py` (traitement hors UI) + `manage.py` (admin comptes : create-admin, list…) |
 
 ## 🖥️ Frontend
 | Page | Résumé |
@@ -32,6 +33,9 @@ updated: 2026-06-22
 | [[21 - Signature e-mail & charte Fingec]] | `signatureHtml`, couleurs (#A72231/#7d1c34), `cabinet.ts`, carnet d'adresses |
 | [[22 - Design system & stack frontend]] | Tailwind v4 + framer-motion + jsPDF, tokens CSS, PageHeader/AuthShell, export PDF |
 | [[23 - Tableau de bord & écrans de relance]] | Dashboard (KPIs), Clients/Historique : quels boutons → quels webhooks |
+| [[24 - Catalogue des composants UI]] | Tous les composants `components/` (Layout, Topbar, AuthShell, ValidationReport, ResultTable, AnomalyConsole…) |
+| [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]] | `utils/` : `authFetch`/session, signature cabinet, helpers, export PDF, tokens |
+| [[26 - Pages secondaires & flux d'authentification]] | Compte, Logs, Clients/Historique, login/oubli/réinit, `ProtectedRoute` |
 
 ## 🤖 n8n & automatisation
 | Page | Résumé |
@@ -45,6 +49,8 @@ updated: 2026-06-22
 |---|---|
 | [[40 - Déploiement (CI-CD & VPS)]] | GitHub Actions CI/CD, VPS Hostinger, **ssh-keyscan flaky** |
 | [[41 - Caddy & routage]] | Matcher `@api`, bind-mount obsolète, sous-domaines |
+| [[42 - Conteneurs, images & exécution]] | 3 conteneurs Docker (backend/frontend/n8n), images, nginx, variables d'env |
+| [[43 - Vestiges Render-Vercel & fichiers brouillons]] | ⚠️ render.yaml/vercel.json/Journal.sh/settings.json périmés (hébergement antérieur) |
 
 ## 🔒 Conformité & légal
 | Page | Résumé |
@@ -55,6 +61,8 @@ updated: 2026-06-22
 | Page | Résumé |
 |---|---|
 | [[50 - Glossaire, endpoints & webhooks]] | Tableaux endpoints backend + webhooks n8n + glossaire |
+| [[51 - Tests automatisés]] | Suite pytest (71 tests) par fichier, fixtures, CI bloquante |
+| [[60 - Outillage du dépôt (assistant, règles, skills)]] | `.claude`/agents/rules/skills/hooks/MCP ; scaffolding générique à nettoyer |
 
 ## 📥 Sources ingérées
 | Source | Date | Résumé |
@@ -62,6 +70,6 @@ updated: 2026-06-22
 | [[2026-06-17 - Session debug OAuth & refonte e-mail de compte]] | 2026-06-17 | Diagnostic OAuth, refonte e-mail de compte, incident CI |
 
 ## Métriques (au 2026-06-22)
-- Pages de synthèse : **20** (+[[14 - Journal d'écritures Quadra]]) · Sources : **1** · Synthèses (`/save`) : 0 · Statut `a-verifier` : 2 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]]).
+- Pages de synthèse : **28** (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 4 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[60 - Outillage du dépôt (assistant, règles, skills)]]).
 - Frontmatter `type:` sur toutes les pages (requêtable via Dataview).
 - Commandes actives : `/ingest` · `/query` · `/save` · `/lint` (cf. [[CLAUDE]] §8).
