@@ -109,3 +109,10 @@ updated: 2026-06-17
   - [[51 - Tests automatisés]] — suite pytest **71 tests** détaillée par fichier (processor 39, journal 9, auth 7, password 7, assignments 5, retention 4) + fixtures `conftest.py`.
 - ⚠️ **Contradictions / dette flaguées** : [[43 - Vestiges Render-Vercel & fichiers brouillons]] (`render.yaml`, `frontend/vercel.json`, `Journal.sh`, `settings.json` génériques — hébergement Render+Vercel **abandonné** au profit du VPS Docker) et [[60 - Outillage du dépôt (assistant, règles, skills)]] (agents/commands/rules/skills **scaffolding générique** référençant un faux `src/`+`ui/` ; exports n8n périmés).
 - 🔴 **Sécurité** : `.claude/settings.local.json` contient un **mot de passe en clair** (`expert@fingec.fr`) dans d'anciennes commandes curl → à **révoquer** (signalé dans [[60 - Outillage du dépôt (assistant, règles, skills)]]).
+
+## [2026-06-22] maintenance | Nettoyage des vestiges & du scaffolding générique
+- **Supprimés** (`git rm`) : `render.yaml`, `frontend/vercel.json`, `Journal.sh`, `settings.json`, `.mcp.json` (vestiges Render/Vercel + brouillons) et le scaffolding générique `agents/`, `commands/`, `rules/`, `skills/deploy/`, `hooks/validate-bash.sh` (dossiers désormais vides → disparus).
+- **Conservés** : `CLAUDE.md`/`CLAUDE.local.md` (instructions réelles), `.claude/skills/ui-ux-pro-max/` (skill design réel), `.claude/settings.local.json` (permissions locales).
+- Aucune référence depuis le code (seul `skills/deploy/deploy-config.md`, lui-même supprimé). **Vérifié** : `npm run build` OK + import backend OK.
+- Wiki recalé : [[43 - Vestiges Render-Vercel & fichiers brouillons]] et [[60 - Outillage du dépôt (assistant, règles, skills)]] passés en « supprimé », index/métriques à jour.
+- ⏳ Reste le seul point ouvert : **révoquer le mot de passe** d'`expert@fingec.fr` (exposé dans `.claude/settings.local.json`).

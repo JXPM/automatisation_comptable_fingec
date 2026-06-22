@@ -50,7 +50,7 @@ updated: 2026-06-22
 | [[40 - Déploiement (CI-CD & VPS)]] | GitHub Actions CI/CD, VPS Hostinger, **ssh-keyscan flaky** |
 | [[41 - Caddy & routage]] | Matcher `@api`, bind-mount obsolète, sous-domaines |
 | [[42 - Conteneurs, images & exécution]] | 3 conteneurs Docker (backend/frontend/n8n), images, nginx, variables d'env |
-| [[43 - Vestiges Render-Vercel & fichiers brouillons]] | ⚠️ render.yaml/vercel.json/Journal.sh/settings.json périmés (hébergement antérieur) |
+| [[43 - Vestiges Render-Vercel & fichiers brouillons]] | ✅ render.yaml/vercel.json/Journal.sh/settings.json **supprimés** (trace de la migration Render→VPS) |
 
 ## 🔒 Conformité & légal
 | Page | Résumé |
@@ -70,6 +70,6 @@ updated: 2026-06-22
 | [[2026-06-17 - Session debug OAuth & refonte e-mail de compte]] | 2026-06-17 | Diagnostic OAuth, refonte e-mail de compte, incident CI |
 
 ## Métriques (au 2026-06-22)
-- Pages de synthèse : **28** (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 4 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[60 - Outillage du dépôt (assistant, règles, skills)]]).
+- Pages de synthèse : **28** (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 3 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[60 - Outillage du dépôt (assistant, règles, skills)]] — secret à révoquer).
 - Frontmatter `type:` sur toutes les pages (requêtable via Dataview).
 - Commandes actives : `/ingest` · `/query` · `/save` · `/lint` (cf. [[CLAUDE]] §8).

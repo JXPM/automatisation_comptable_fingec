@@ -2,12 +2,15 @@
 type: reference
 tags: [fingec, automatisation-comptable, infra, dette-technique]
 updated: 2026-06-22
-status: a-verifier
+status: stable
 ---
 
 # 43 — Vestiges Render/Vercel & fichiers brouillons
 
-Fichiers présents dans le dépôt qui **ne correspondent plus** à l'architecture de prod (VPS Docker, [[42 - Conteneurs, images & exécution]]). Conservés ici pour mémoire — candidats au nettoyage.
+> [!success] Nettoyé le 2026-06-22
+> Tous les fichiers listés ci-dessous ont été **supprimés** du dépôt (`render.yaml`, `frontend/vercel.json`, `Journal.sh`, `settings.json`, `.mcp.json`). Build frontend + import backend revérifiés OK. Page conservée comme **trace historique** de la migration Render/Vercel → VPS Docker.
+
+Fichiers qui **ne correspondaient plus** à l'architecture de prod (VPS Docker, [[42 - Conteneurs, images & exécution]]) — désormais retirés.
 
 > [!warning] Contradiction d'hébergement
 > Le projet a d'abord visé un déploiement **Render (backend) + Vercel (frontend)**, puis a migré vers un **VPS Hostinger en Docker** derrière le Caddy de pharmaclick. Plusieurs artefacts de la 1ʳᵉ approche subsistent. Source de vérité actuelle : [[40 - Déploiement (CI-CD & VPS)]], [[02 - Architecture globale]], [[Écosystème Fingec]].
@@ -23,5 +26,5 @@ Fichiers présents dans le dépôt qui **ne correspondent plus** à l'architectu
 - **`settings.json`** (racine) — paraît être un **template générique non utilisé** (`permissions` sur `src/**`/`ui/**`, `model: raptor-mini`) : ne correspond pas à l'arborescence réelle (`backend/`, `frontend/`). À vérifier / supprimer.
 - **`.mcp.json`** — config d'intégration minimale (`github: true`) ; voir [[60 - Outillage du dépôt]].
 
-> [!tip] Action proposée
-> Si Render/Vercel sont définitivement abandonnés : supprimer `render.yaml`, `frontend/vercel.json`, `Journal.sh`, et clarifier/retirer `settings.json`. À confirmer avec Johan avant suppression.
+> [!done] Action réalisée (2026-06-22)
+> `render.yaml`, `frontend/vercel.json`, `Journal.sh`, `settings.json` et `.mcp.json` **supprimés**. Le scaffolding générique (`agents/`, `commands/`, `rules/`, `skills/deploy/`, `hooks/`) a également été retiré — voir [[60 - Outillage du dépôt (assistant, règles, skills)]].
