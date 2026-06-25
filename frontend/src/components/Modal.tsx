@@ -31,7 +31,7 @@ export default function Modal({ open, text, onConfirm, onCancel }: Props) {
           fontFamily: "inherit",
         }}
       >
-        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, marginBottom: 10, color: "#0F1421", letterSpacing: "-0.3px" }}>
+        <h3 style={{ fontFamily: "var(--font-display)", fontSize: 19, fontWeight: 700, marginBottom: 10, color: "#0F1421", letterSpacing: "-0.3px" }}>
           Confirmer la relance
         </h3>
         <p style={{ fontSize: 13.5, color: "#6B7280", marginBottom: 24, lineHeight: 1.55 }}>{text}</p>

@@ -1,52 +1,22 @@
 import {
-  useEffect,
   useState,
   type ReactNode,
   type InputHTMLAttributes,
   type ComponentType,
 } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Eye,
-  EyeOff,
-  ArrowRight,
-  LineChart,
-  ShieldCheck,
-  Sparkles,
-  type LucideIcon,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { B, B_DARK } from "../theme";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
  * Coquille d'authentification (login / mot de passe oublié / réinitialisation).
- * Mise en page SaaS : formulaire à gauche (carte blanche, logo + titre centrés),
- * panneau de marque « onboarding » à droite (carte dégradée bordeaux, lampe
- * suspendue, aperçu de tableau de bord flottant et carrousel de messages).
- * Adapté de la référence Dribbble fournie, à la charte Fingec.
+ * Mise en page SaaS : grande photo réelle à gauche (logo + citation en
+ * surimpression), formulaire à droite. Inspiré de la référence fournie, à la
+ * charte Fingec.
  */
-
-// ── Diaporama du volet de marque ─────────────────────────────────────────────
-const SLIDES: { icon: LucideIcon; title: string; text: string }[] = [
-  {
-    icon: LineChart,
-    title: "La compta, sans la saisie manuelle.",
-    text: "Import Shopify & TikTok, contrôle qualité et export Quadra réunis dans une seule interface.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Vos dossiers, en sécurité.",
-    text: "Hébergement en France, accès chiffré et conforme RGPD pour les données de vos clients.",
-  },
-  {
-    icon: Sparkles,
-    title: "Des relances qui partent seules.",
-    text: "Suivi des clients et e-mails de relance automatisés, à la charte du cabinet.",
-  },
-];
-
 export default function AuthShell({
   title,
   subtitle,
@@ -56,19 +26,48 @@ export default function AuthShell({
   subtitle?: string;
   children: ReactNode;
 }) {
-  const [slide, setSlide] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  const active = SLIDES[slide];
-  const ActiveIcon = active.icon;
-
   return (
     <div className="auth-split">
-      {/* ── Volet formulaire (gauche) ── */}
+      {/* ── Volet visuel (gauche) : photo réelle ── */}
+      <div className="auth-brand">
+        <div className="auth-art-card">
+          <img className="auth-cover" src="/login-cover.jpg" alt="" aria-hidden />
+          <div className="auth-cover-tint" aria-hidden />
+
+          {/* Logo en haut à gauche */}
+          <div style={{ position: "absolute", top: 26, left: 28, display: "flex", alignItems: "center", gap: 11, zIndex: 2 }}>
+            <div
+              style={{
+                width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                background: "linear-gradient(140deg, #fff, #f4f4f6)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 6px 18px -8px rgba(0,0,0,0.5)",
+              }}
+            >
+              <img src="/fingec-logo.png" alt="Fingec" style={{ width: 26, height: 26, objectFit: "contain" }} />
+            </div>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, letterSpacing: "2px", color: "#fff" }}>
+              FINGEC
+            </span>
+          </div>
+
+          {/* Citation en bas */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 0.15 }}
+            style={{ position: "relative", zIndex: 2, padding: "0 38px 40px" }}
+          >
+            <p style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 26, lineHeight: 1.32, fontWeight: 600, letterSpacing: "-0.3px", maxWidth: 420 }}>
+              « Toute la comptabilité e‑commerce, du fichier brut à l'écriture Quadra. »
+            </p>
+            <div style={{ marginTop: 18, fontSize: 14, fontWeight: 600, color: "#fff" }}>Cabinet Fingec</div>
+            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)" }}>Expertise comptable · e‑commerce</div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── Volet formulaire (droite) ── */}
       <div className="auth-form-col">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -76,8 +75,8 @@ export default function AuthShell({
           transition={{ duration: 0.45, ease: EASE }}
           style={{ width: "100%", maxWidth: 392 }}
         >
-          {/* Logo + titre, centrés (comme la référence) */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          {/* Logo replié pour mobile (la photo est masquée sous 980px) */}
+          <div className="auth-form-logo" style={{ justifyContent: "center", marginBottom: 22 }}>
             <div
               style={{
                 width: 52, height: 52, borderRadius: 15,
@@ -88,11 +87,14 @@ export default function AuthShell({
             >
               <img src="/fingec-logo.png" alt="Fingec" style={{ width: 34, height: 34, objectFit: "contain" }} />
             </div>
-            <h2 style={{ margin: "20px 0 0", fontSize: 24, fontWeight: 720, color: "var(--ink)", letterSpacing: "-0.4px" }}>
+          </div>
+
+          <div style={{ textAlign: "center" }}>
+            <h2 style={{ margin: 0, fontSize: 26, fontWeight: 740, color: "var(--ink)", letterSpacing: "-0.5px" }}>
               {title}
             </h2>
             {subtitle && (
-              <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.55, color: "var(--muted)", maxWidth: 320 }}>
+              <p style={{ margin: "8px auto 0", fontSize: 14, lineHeight: 1.55, color: "var(--muted)", maxWidth: 320 }}>
                 {subtitle}
               </p>
             )}
@@ -116,199 +118,7 @@ export default function AuthShell({
           </p>
         </motion.div>
       </div>
-
-      {/* ── Volet de marque (droite) ── */}
-      <div className="auth-brand">
-        <div className="auth-art-card">
-          {/* Trame + halos en arrière-plan */}
-          <div
-            aria-hidden
-            style={{
-              position: "absolute", inset: 0,
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-              backgroundSize: "46px 46px",
-              maskImage: "radial-gradient(130% 90% at 50% 0%, #000 35%, transparent 78%)",
-            }}
-          />
-          <div
-            aria-hidden
-            style={{
-              position: "absolute", top: "-12%", right: "-18%",
-              width: 360, height: 360, borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%)",
-            }}
-          />
-
-          {/* Lampe suspendue + scène de tableau de bord flottant */}
-          <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Lamp />
-            <Dashboard />
-          </div>
-
-          {/* Légende + carrousel */}
-          <div style={{ position: "relative" }}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={slide}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.4, ease: EASE }}
-              >
-                <div
-                  style={{
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 38, height: 38, borderRadius: 11, marginBottom: 16,
-                    background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)",
-                  }}
-                >
-                  <ActiveIcon size={19} strokeWidth={1.9} color="#fff" />
-                </div>
-                <h3
-                  style={{
-                    margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 27, lineHeight: 1.2,
-                    fontWeight: 600, letterSpacing: "-0.3px", maxWidth: 340,
-                  }}
-                >
-                  {active.title}
-                </h3>
-                <p style={{ margin: "12px 0 0", fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", maxWidth: 360 }}>
-                  {active.text}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 26 }}>
-              <div className="auth-dots" role="tablist" aria-label="Diaporama">
-                {SLIDES.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === slide}
-                    aria-label={`Message ${i + 1}`}
-                    onClick={() => setSlide(i)}
-                    className={`auth-dot${i === slide ? " is-active" : ""}`}
-                    style={{ border: "none", cursor: "pointer", padding: 0 }}
-                  />
-                ))}
-              </div>
-              <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", letterSpacing: "0.3px" }}>
-                © {new Date().getFullYear()} Fingec
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  );
-}
-
-// ── Lampe suspendue (motif de la référence) ─────────────────────────────────
-function Lamp() {
-  return (
-    <div
-      aria-hidden
-      style={{
-        position: "absolute", top: -44, left: "50%", transformOrigin: "top center",
-        animation: "lampSway 6s ease-in-out infinite",
-      }}
-    >
-      <div style={{ width: 2, height: 96, margin: "0 auto", background: "linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.15))" }} />
-      <div
-        style={{
-          width: 96, height: 48, marginTop: -1, borderRadius: "0 0 96px 96px",
-          background: "linear-gradient(#2a0810, #160206)",
-          boxShadow: "inset 0 -8px 14px rgba(255,255,255,0.08)",
-        }}
-      />
-      <div
-        style={{
-          width: 200, height: 200, marginTop: -8, marginLeft: -52, borderRadius: "50%",
-          background: "radial-gradient(circle at 50% 0%, rgba(255,236,210,0.22), transparent 62%)",
-        }}
-      />
-    </div>
-  );
-}
-
-// ── Aperçu de tableau de bord flottant (verre dépoli) ───────────────────────
-function Dashboard() {
-  const bars = [38, 58, 46, 72, 60, 88, 70];
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 22, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}
-      style={{ position: "relative", animation: "floatY 7s ease-in-out infinite" }}
-    >
-      {/* Carte secondaire en retrait (profondeur) */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute", inset: 0, transform: "translate(16px, 18px) rotate(3deg)",
-          borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-        }}
-      />
-      {/* Carte principale */}
-      <div
-        style={{
-          position: "relative", width: 290, borderRadius: 20, padding: 22,
-          background: "linear-gradient(150deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07))",
-          border: "1px solid rgba(255,255,255,0.28)",
-          boxShadow: "0 24px 50px -22px rgba(0,0,0,0.55)",
-          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>Chiffre traité</span>
-          <span
-            style={{
-              fontSize: 11, fontWeight: 700, color: "#fff", padding: "3px 8px", borderRadius: 99,
-              background: "rgba(74,222,128,0.22)", border: "1px solid rgba(74,222,128,0.4)",
-            }}
-          >
-            +18,4 %
-          </span>
-        </div>
-        <div style={{ marginTop: 8, fontSize: 28, fontWeight: 760, letterSpacing: "-0.5px" }}>128 450 €</div>
-
-        {/* Mini histogramme */}
-        <div style={{ marginTop: 20, display: "flex", alignItems: "flex-end", gap: 9, height: 84 }}>
-          {bars.map((h, i) => (
-            <motion.div
-              key={i}
-              initial={{ height: 0 }}
-              animate={{ height: `${h}%` }}
-              transition={{ duration: 0.6, ease: EASE, delay: 0.35 + i * 0.06 }}
-              style={{
-                flex: 1, borderRadius: 5,
-                background:
-                  i === bars.length - 1
-                    ? "linear-gradient(#fff, rgba(255,255,255,0.7))"
-                    : "linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.18))",
-              }}
-            />
-          ))}
-        </div>
-
-        <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
-          {["Shopify", "TikTok", "Quadra"].map((t) => (
-            <span
-              key={t}
-              style={{
-                fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,0.82)",
-                padding: "4px 9px", borderRadius: 7,
-                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.16)",
-              }}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-    </motion.div>
   );
 }
 

@@ -156,3 +156,46 @@ def test_change_password_requires_auth(client):
     res = client.post("/auth/change-password",
                       json={"current_password": "x", "new_password": "yyyyyyyy"})
     assert res.status_code == 401
+
+
+# ── Profil (nom + photo) ─────────────────────────────────────────────────────
+def test_update_profile_name_and_avatar(client):
+    admin = _login(client, "admin@fingec.fr", "admin-password-1")
+    client.post("/auth/users", headers=_auth(admin),
+                json={"email": "p@fingec.fr", "full_name": "Ancien", "password": "profil-mdp-123"})
+    token = _login(client, "p@fingec.fr", "profil-mdp-123")
+
+    avatar = "data:image/jpeg;base64,/9j/abc"
+    res = client.patch("/auth/me", headers=_auth(token),
+                       json={"full_name": "Nouveau Nom", "avatar_url": avatar})
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["full_name"] == "Nouveau Nom"
+    assert body["avatar_url"] == avatar
+    assert body["email"] == "p@fingec.fr"  # l'e-mail n'est jamais touché
+
+    # Persisté : /auth/me renvoie la nouvelle valeur.
+    me = client.get("/auth/me", headers=_auth(token))
+    assert me.json()["full_name"] == "Nouveau Nom"
+
+    # Retrait de la photo (chaîne vide).
+    res = client.patch("/auth/me", headers=_auth(token), json={"avatar_url": ""})
+    assert res.status_code == 200
+    assert res.json()["avatar_url"] == ""
+
+
+def test_update_profile_rejects_empty_name_and_bad_image(client):
+    admin = _login(client, "admin@fingec.fr", "admin-password-1")
+    client.post("/auth/users", headers=_auth(admin),
+                json={"email": "q@fingec.fr", "password": "profil-mdp-123"})
+    token = _login(client, "q@fingec.fr", "profil-mdp-123")
+
+    assert client.patch("/auth/me", headers=_auth(token),
+                        json={"full_name": "   "}).status_code == 422
+    assert client.patch("/auth/me", headers=_auth(token),
+                        json={"avatar_url": "http://evil/x.png"}).status_code == 422
+    assert client.patch("/auth/me", headers=_auth(token), json={}).status_code == 400
+
+
+def test_update_profile_requires_auth(client):
+    assert client.patch("/auth/me", json={"full_name": "X"}).status_code == 401

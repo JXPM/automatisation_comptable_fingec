@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../auth/AuthContext";
-import { initials } from "../utils/clients";
+import Avatar from "./Avatar";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -62,16 +62,7 @@ export default function Topbar() {
             boxShadow: "0 1px 2px rgba(15,20,33,0.04)",
           }}
         >
-          <div style={{
-            width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-            background: "linear-gradient(135deg, #A72231 0%, #7E1626 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13, fontWeight: 700, color: "#fff",
-            fontFamily: "'Playfair Display', serif", letterSpacing: "0.5px",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
-          }}>
-            {initials(displayName)}
-          </div>
+          <Avatar name={displayName} src={user?.avatar_url} size={34} fontSize={13} />
           <div style={{ textAlign: "left", lineHeight: 1.2, maxWidth: 150 }}>
             <div style={{
               fontSize: 13, fontWeight: 600, color: "#0F1421",

@@ -138,7 +138,7 @@ export default function AnomalyConsole({ anomalies, loading, activeAnomaly, onSe
                 </p>
               </div>
               <h2 style={{
-                fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#1a1a2e",
+                fontFamily: "var(--font-display)", fontSize: 18, color: "#1a1a2e",
                 fontWeight: 600, letterSpacing: "-0.3px", margin: 0,
               }}>
                 Vérification des données

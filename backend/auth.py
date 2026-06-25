@@ -74,10 +74,15 @@ def init_db() -> None:
                 password_hash TEXT NOT NULL,
                 role          TEXT NOT NULL DEFAULT 'user',
                 active        INTEGER NOT NULL DEFAULT 1,
+                avatar_url    TEXT NOT NULL DEFAULT '',
                 created_at    TEXT NOT NULL
             )
             """
         )
+        # Migration : ajoute avatar_url aux bases créées avant cette colonne.
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)").fetchall()}
+        if "avatar_url" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT NOT NULL DEFAULT ''")
         # Attribution client -> comptable. Les clients vivent dans Google Sheets ;
         # on les référence par leur Email (clé unique). Un client a au plus un
         # propriétaire, un utilisateur peut en avoir plusieurs (1-N).
@@ -150,6 +155,7 @@ def _row_to_user(row: sqlite3.Row | None) -> dict | None:
         "full_name": row["full_name"],
         "role": row["role"],
         "active": bool(row["active"]),
+        "avatar_url": row["avatar_url"] if "avatar_url" in row.keys() else "",
         "created_at": row["created_at"],
     }
 
@@ -206,7 +212,8 @@ def create_user(email: str, password: str, full_name: str = "", role: str = "use
 
 
 def update_user(user_id: int, *, active: bool | None = None,
-                role: str | None = None, password: str | None = None) -> dict:
+                role: str | None = None, password: str | None = None,
+                full_name: str | None = None, avatar_url: str | None = None) -> dict:
     fields, params = [], []
     if active is not None:
         fields.append("active = ?")
@@ -216,6 +223,12 @@ def update_user(user_id: int, *, active: bool | None = None,
             raise ValueError("Rôle invalide.")
         fields.append("role = ?")
         params.append(role)
+    if full_name is not None:
+        fields.append("full_name = ?")
+        params.append(full_name.strip())
+    if avatar_url is not None:
+        fields.append("avatar_url = ?")
+        params.append(avatar_url)
     if password is not None:
         password_policy.validate_strength(password)
         fields.append("password_hash = ?")

@@ -173,7 +173,7 @@ export default function DashboardPage() {
           <div style={{ fontSize: 12.5, color: FAINT, fontWeight: 500, textTransform: "capitalize", marginBottom: 7 }}>
             {now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 31, fontWeight: 700, color: INK, margin: 0, letterSpacing: "-0.5px" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 31, fontWeight: 700, color: INK, margin: 0, letterSpacing: "-0.5px" }}>
             {greeting}{firstName ? " " : ""}<span style={{ color: B }}>{firstName}</span>
           </h1>
         </div>

@@ -77,7 +77,7 @@ export default function ValidationReport({ report, output, filename, country, an
           <div style={{ fontSize: 11, fontWeight: 700, color: B, textTransform: "uppercase", letterSpacing: "1.2px", marginBottom: 5 }}>
             Résultats
           </div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.3px" }}>Rapport de validation</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.3px" }}>Rapport de validation</h2>
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>

@@ -41,7 +41,7 @@ export default function LegalLayout({
           >
             <img src="/fingec-logo.png" alt="Fingec" style={{ width: 24, height: 24, objectFit: "contain" }} />
           </div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 16, letterSpacing: "2px", color: "var(--ink)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, letterSpacing: "2px", color: "var(--ink)" }}>
             FINGEC
           </span>
         </Link>
@@ -61,7 +61,7 @@ export default function LegalLayout({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE }}
         >
-          <h1 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 600, letterSpacing: "-0.4px", color: "var(--ink)" }}>
+          <h1 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 600, letterSpacing: "-0.4px", color: "var(--ink)" }}>
             {title}
           </h1>
           <p style={{ margin: "10px 0 28px", fontSize: 12.5, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.6px" }}>

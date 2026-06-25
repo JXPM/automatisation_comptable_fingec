@@ -273,6 +273,12 @@ class UpdateUserPayload(BaseModel):
     password: str | None = None
 
 
+class UpdateProfilePayload(BaseModel):
+    # L'utilisateur peut modifier son nom et sa photo, jamais son e-mail.
+    full_name: str | None = None
+    avatar_url: str | None = None  # data URL (image redimensionnée côté client) ou "" pour retirer
+
+
 class ChangePasswordPayload(BaseModel):
     current_password: str
     new_password: str
@@ -288,7 +294,13 @@ class ResetPasswordPayload(BaseModel):
 
 
 def _public_user(user: dict) -> dict:
-    return {k: user[k] for k in ("id", "email", "full_name", "role", "active", "created_at")}
+    return {k: user.get(k) for k in
+            ("id", "email", "full_name", "role", "active", "avatar_url", "created_at")}
+
+
+# Limite la taille du data URL d'avatar (~1,5 Mo de base64). L'image est déjà
+# redimensionnée côté navigateur ; ce garde-fou empêche de gonfler la base.
+_AVATAR_MAX_CHARS = 1_500_000
 
 
 @app.post("/auth/login")
@@ -324,6 +336,30 @@ async def logout(response: Response):
 @app.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
     return _public_user(user)
+
+
+@app.patch("/auth/me")
+async def update_me(payload: UpdateProfilePayload, user: dict = Depends(get_current_user)):
+    """Mise à jour par l'utilisateur de son propre profil (nom + photo, pas l'e-mail)."""
+    updates: dict = {}
+    if payload.full_name is not None:
+        name = payload.full_name.strip()
+        if not name:
+            raise HTTPException(status_code=422, detail="Le nom ne peut pas être vide.")
+        if len(name) > 120:
+            raise HTTPException(status_code=422, detail="Nom trop long (120 caractères max).")
+        updates["full_name"] = name
+    if payload.avatar_url is not None:
+        avatar = payload.avatar_url.strip()
+        if avatar and not avatar.startswith("data:image/"):
+            raise HTTPException(status_code=422, detail="Format d'image invalide.")
+        if len(avatar) > _AVATAR_MAX_CHARS:
+            raise HTTPException(status_code=422, detail="Image trop volumineuse.")
+        updates["avatar_url"] = avatar
+    if not updates:
+        raise HTTPException(status_code=400, detail="Aucune modification fournie.")
+    updated = auth.update_user(user["id"], **updates)
+    return _public_user(updated)
 
 
 @app.get("/auth/users")

@@ -18,7 +18,9 @@ export const DEFAULT_CABINET: CabinetInfo = {
 };
 
 // Logo hébergé publiquement (indispensable pour qu'il s'affiche dans les e-mails).
-export const CABINET_LOGO = "https://raw.githubusercontent.com/fingec/fingec-assets/refs/heads/main/fing.png";
+// Auto-hébergé sur notre domaine (fichier `public/fingec-logo-full.png`) plutôt
+// que sur un dépôt externe : plus fiable et maîtrisé.
+export const CABINET_LOGO = "https://app.fingec.fr/fingec-logo-full.png";
 
 export function getCabinet(): CabinetInfo {
   try {

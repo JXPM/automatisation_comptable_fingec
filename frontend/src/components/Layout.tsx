@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { ReactNode } from "react";
 import { useAuth } from "../auth/AuthContext";
 import Topbar from "./Topbar";
+import PageWatermark from "./PageWatermark";
+
+// Pages où afficher le logo en filigrane (fondu, bas-droite).
+const WATERMARK_ROUTES = ["/", "/admin", "/compte", "/mail", "/logs", "/historique"];
 
 const ADMIN_NAV = {
   to: "/admin",
@@ -89,6 +93,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { user } = useAuth();
   const navItems = user?.role === "admin" ? [...NAV, ADMIN_NAV] : NAV;
+  const showWatermark = WATERMARK_ROUTES.some((r) =>
+    r === "/" ? location.pathname === "/" : location.pathname.startsWith(r)
+  );
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -177,7 +184,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </motion.div>
             <div>
               <div style={{
-                fontFamily: "'Playfair Display', serif",
+                fontFamily: "var(--font-display)",
                 fontSize: 16, fontWeight: 700,
                 letterSpacing: "2px", color: "white",
               }}>FINGEC</div>
@@ -273,7 +280,9 @@ export default function Layout({ children }: { children: ReactNode }) {
         flex: 1,
         overflowY: "auto",
         background: "transparent",
+        position: "relative",
       }}>
+        {showWatermark && <PageWatermark />}
         <Topbar />
         <AnimatePresence mode="wait">
           <motion.div

@@ -100,7 +100,7 @@ export default function ResultTable({ rows, highlightedRows, rowSeverityMap, act
           <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.8px", color: isFiltering ? "#b91c1c" : "#6b7280", fontWeight: 500, marginBottom: 2 }}>
             {isFiltering ? "Filtre actif — anomalie sélectionnée" : "Aperçu"}
           </p>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#1a1a2e" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "#1a1a2e" }}>
             Données traitées{" "}
             <span style={{ fontSize: 13, fontFamily: "'DM Sans', sans-serif", fontWeight: 400, color: "#6b7280" }}>
               {isFiltering

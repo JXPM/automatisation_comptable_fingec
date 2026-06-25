@@ -139,7 +139,7 @@ export default function UnderDevelopment({ children, hint }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18, duration: 0.5, ease: EASE }}
             style={{
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "var(--font-display)",
               fontSize: 28, fontWeight: 600,
               color: "#0F1421", margin: "0 0 10px",
               letterSpacing: "-0.4px", lineHeight: 1.2,

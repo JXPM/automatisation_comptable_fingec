@@ -18,7 +18,7 @@ interface PageHeaderProps {
 }
 
 /**
- * En-tête de page unifié : barre d'accent animée + sur-titre + titre Playfair
+ * En-tête de page unifié : barre d'accent animée + sur-titre + titre (police display)
  * (+ sous-titre et actions optionnels). Partagé par toutes les pages de l'app
  * pour garantir un rendu cohérent.
  */
@@ -48,7 +48,7 @@ export default function PageHeader({ eyebrow, title, subtitle, actions, style }:
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1.6px", textTransform: "uppercase", color: B, marginBottom: 4 }}>
             {eyebrow}
           </p>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 700, color: "#0F1421", margin: 0, letterSpacing: "-0.5px" }}>
             {title}
           </h1>
           {subtitle && (
