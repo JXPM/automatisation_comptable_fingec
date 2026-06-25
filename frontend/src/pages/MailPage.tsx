@@ -33,13 +33,16 @@ function escapeHtml(s: string) {
 /** Signature HTML (table compatible e-mail) avec logo, nom de l'expéditeur et coordonnées du cabinet. */
 function signatureHtml(name: string, c: CabinetInfo) {
   const phone = c.telephone ? `<div style="font-size:12px;color:${RED};">${escapeHtml(c.telephone)}</div>` : "";
+  const displayName = name || "Cabinet Fingec";
+  // Évite de répéter « Cabinet Fingec » quand l'expéditeur est déjà le cabinet (ou no-reply).
+  const subline = /cabinet fingec/i.test(displayName) ? "" : `<div style="font-size:13px;color:${RED};">Cabinet Fingec</div>`;
   return (
     `<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-top:2px solid ${RED};padding-top:12px;font-family:'Segoe UI',Arial,sans-serif;">` +
       `<tr>` +
         `<td style="vertical-align:top;padding:12px 16px 0 0;"><img src="${CABINET_LOGO}" width="88" alt="Fingec" style="display:block;"></td>` +
         `<td style="vertical-align:top;padding-top:12px;line-height:1.5;">` +
-          `<div style="font-size:18px;font-weight:700;color:${RED};">${escapeHtml(name || "Cabinet Fingec")}</div>` +
-          `<div style="font-size:13px;color:${RED};">Cabinet Fingec</div>` +
+          `<div style="font-size:18px;font-weight:700;color:${RED};">${escapeHtml(displayName)}</div>` +
+          subline +
           phone +
           `<div style="font-size:12px;color:#555;">${escapeHtml(c.adresse)}</div>` +
           `<div style="font-size:12px;color:#444;">${escapeHtml(c.ordre)}</div>` +
@@ -80,7 +83,25 @@ export default function MailPage() {
   const [sending, setSending] = useState(false);
   const [cabinet, setCabinet] = useState<CabinetInfo>(getCabinet);
   const [editingSig, setEditingSig] = useState(false);
+  const [senderKey, setSenderKey] = useState<"fingec" | "noreply" | "me" | "autre">("fingec");
+  const [customSender, setCustomSender] = useState("");
   const { showToast } = useToast();
+
+  // Choix d'expéditeur : on ne change que le NOM affiché (l'adresse réelle reste
+  // le compte Gmail authentifié — Gmail interdit une adresse arbitraire sans alias).
+  const SENDER_OPTIONS = useMemo(() => [
+    { key: "fingec" as const, label: "Cabinet Fingec", display: "Cabinet Fingec", sub: "Expéditeur par défaut" },
+    { key: "noreply" as const, label: "No-reply Fingec", display: "No-reply Cabinet Fingec", sub: "Annonces, sans réponse attendue" },
+    { key: "me" as const, label: "Mon nom", display: senderName, sub: senderName || "Votre compte" },
+    { key: "autre" as const, label: "Autre…", display: customSender.trim(), sub: "Nom personnalisé" },
+  ], [senderName, customSender]);
+
+  // Nom d'expéditeur effectif (sert au header From ET au nom en haut de la signature).
+  const senderDisplay = useMemo(() => {
+    if (senderKey === "me") return senderName || "Cabinet Fingec";
+    if (senderKey === "autre") return customSender.trim() || "Cabinet Fingec";
+    return SENDER_OPTIONS.find(o => o.key === senderKey)?.display || "Cabinet Fingec";
+  }, [senderKey, senderName, customSender, SENDER_OPTIONS]);
 
   // Mise à jour live des coordonnées du cabinet (persistées immédiatement).
   const updateCabinet = (patch: Partial<CabinetInfo>) => {
@@ -195,12 +216,12 @@ export default function MailPage() {
     setSending(true);
     try {
       // L'e-mail part en HTML : corps saisi + signature du cabinet avec logo.
-      const html = buildEmailHtml(message, senderName, cabinet);
+      const html = buildEmailHtml(message, senderDisplay, cabinet);
       const res = await authFetch("/n8n/webhook/send-mail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // `from` : le mail part de l'adresse du collaborateur connecté.
-        body: JSON.stringify({ from: user?.email, to: finalRecipients.join(","), subject, message: html }),
+        // `from` : adresse réelle (compte authentifié). `senderName` : nom affiché choisi.
+        body: JSON.stringify({ from: user?.email, senderName: senderDisplay, to: finalRecipients.join(","), subject, message: html }),
       });
       if (!res.ok) throw new Error();
       showToast(`Mail envoyé à ${finalRecipients.length} destinataire${finalRecipients.length > 1 ? "s" : ""}`);
@@ -229,12 +250,16 @@ export default function MailPage() {
   const showDropdown = focused && matches.length > 0;
 
   return (
-    <div style={{ padding: "36px 40px", maxWidth: 760, margin: "0 auto" }}>
+    <div style={{ padding: "36px 40px", maxWidth: 1120, margin: "0 auto" }}>
 
       {/* Header */}
       <PageHeader eyebrow="Communication" title="Nouveau mail" />
 
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+
+      {/* Colonne principale : composition */}
       <div style={{
+        flex: "1 1 540px", minWidth: 0,
         background: "white", borderRadius: 16, border: "1px solid #ECEEF2",
         padding: 24,
         boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 8px 24px -8px rgba(15,20,33,0.08)",
@@ -318,41 +343,8 @@ export default function MailPage() {
             )}
           </div>
 
-          {/* Ajout rapide : tous les collaborateurs / clients / tout le monde */}
-          {contacts.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10, alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "#9CA3AF", marginRight: 2 }}>Ajout rapide :</span>
-              {collaborateurs.length > 0 && (
-                <button type="button" onClick={() => addEmails(collaborateurs.map(c => c.Email))} style={quickChip}>
-                  + Tous les collaborateurs ({collaborateurs.length})
-                </button>
-              )}
-              {clientContacts.length > 0 && (
-                <button type="button" onClick={() => addEmails(clientContacts.map(c => c.Email))} style={quickChip}>
-                  + Tous les clients ({clientContacts.length})
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => addEmails(contacts.map(c => c.Email))}
-                style={{ ...quickChip, border: `1px solid ${B}`, background: "#FBE9EC", color: B, fontWeight: 600 }}
-              >
-                + Tout le monde ({contacts.length})
-              </button>
-              {recipients.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setRecipients([])}
-                  style={{ ...quickChip, color: "#9CA3AF" }}
-                >
-                  Tout retirer
-                </button>
-              )}
-            </div>
-          )}
-
           <p style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 8 }}>
-            Tape un nom ou une adresse, choisis dans le carnet, ou utilise l'ajout rapide. Entrée pour ajouter.
+            Tape un nom ou une adresse, choisis dans le carnet, ou utilise l'ajout rapide (panneau de droite). Entrée pour ajouter.
           </p>
         </div>
 
@@ -455,7 +447,7 @@ export default function MailPage() {
           )}
 
           <div style={{ border: "1px solid #ECEEF2", borderRadius: 11, padding: "16px 18px", background: "#FBFBFC" }}>
-            <div dangerouslySetInnerHTML={{ __html: signatureHtml(senderName, cabinet) }} />
+            <div dangerouslySetInnerHTML={{ __html: signatureHtml(senderDisplay, cabinet) }} />
           </div>
           <p style={{ fontSize: 11.5, color: "#9CA3AF", marginTop: 6 }}>
             Signature du cabinet (logo + coordonnées), insérée automatiquement à la fin de chaque e-mail.
@@ -479,6 +471,101 @@ export default function MailPage() {
             {sending ? "Envoi en cours…" : "Envoyer"}
           </button>
         </div>
+      </div>
+
+      {/* Panneau latéral droit : expéditeur + ajout rapide */}
+      <aside style={{ flex: "1 1 280px", minWidth: 240, maxWidth: 360, display: "flex", flexDirection: "column", gap: 16 }}>
+
+        {/* Expéditeur */}
+        <div style={{
+          background: "white", borderRadius: 16, border: "1px solid #ECEEF2", padding: 18,
+          boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 8px 24px -8px rgba(15,20,33,0.08)",
+        }}>
+          <label style={labelStyle}>Expéditeur</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            {SENDER_OPTIONS.map(opt => {
+              const active = senderKey === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setSenderKey(opt.key)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10, textAlign: "left",
+                    padding: "9px 11px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit",
+                    border: `1px solid ${active ? B : "#E5E7EB"}`,
+                    background: active ? "#FBE9EC" : "white", transition: "all 0.14s",
+                  }}
+                >
+                  <span style={{
+                    width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                    border: `2px solid ${active ? B : "#CBD2DD"}`, position: "relative",
+                  }}>
+                    {active && <span style={{ position: "absolute", inset: 3, borderRadius: "50%", background: B }} />}
+                  </span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: active ? B : "#141A26" }}>{opt.label}</span>
+                    <span style={{ display: "block", fontSize: 11.5, color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.sub}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {senderKey === "autre" && (
+            <input
+              value={customSender}
+              onChange={e => setCustomSender(e.target.value)}
+              placeholder="Nom à afficher (ex. Service paie)"
+              style={{ ...fieldStyle, marginTop: 9 }}
+            />
+          )}
+
+          <div style={{ marginTop: 12, padding: "9px 11px", background: "#F7F8FA", borderRadius: 9, fontSize: 11.5, color: "#6B7280", lineHeight: 1.5 }}>
+            S'affiche comme <strong style={{ color: "#141A26" }}>{senderDisplay}</strong>.<br />
+            Adresse réelle inchangée ({user?.email || "compte connecté"}).
+          </div>
+        </div>
+
+        {/* Ajout rapide */}
+        {contacts.length > 0 && (
+          <div style={{
+            background: "white", borderRadius: 16, border: "1px solid #ECEEF2", padding: 18,
+            boxShadow: "0 1px 2px rgba(15,20,33,0.04), 0 8px 24px -8px rgba(15,20,33,0.08)",
+          }}>
+            <label style={labelStyle}>Ajout rapide</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {collaborateurs.length > 0 && (
+                <button type="button" onClick={() => addEmails(collaborateurs.map(c => c.Email))} style={{ ...quickChip, width: "100%", textAlign: "left" }}>
+                  + Tous les collaborateurs ({collaborateurs.length})
+                </button>
+              )}
+              {clientContacts.length > 0 && (
+                <button type="button" onClick={() => addEmails(clientContacts.map(c => c.Email))} style={{ ...quickChip, width: "100%", textAlign: "left" }}>
+                  + Tous les clients ({clientContacts.length})
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => addEmails(contacts.map(c => c.Email))}
+                style={{ ...quickChip, width: "100%", textAlign: "left", border: `1px solid ${B}`, background: "#FBE9EC", color: B, fontWeight: 600 }}
+              >
+                + Tout le monde ({contacts.length})
+              </button>
+              {recipients.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setRecipients([])}
+                  style={{ ...quickChip, width: "100%", textAlign: "left", color: "#9CA3AF" }}
+                >
+                  Tout retirer ({recipients.length})
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </aside>
+
       </div>
     </div>
   );
