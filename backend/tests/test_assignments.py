@@ -18,7 +18,7 @@ def db(tmp_path: Path, monkeypatch):
 
 
 def test_set_and_query_assignment(db):
-    u = auth.create_user("compta@fingec.fr", "password123", "Compta Un")
+    u = auth.create_user("compta@fingec.fr", "Valid-Pass-123", "Compta Un")
 
     auth.set_assignment("Client@Example.com", u["id"])
 
@@ -28,8 +28,8 @@ def test_set_and_query_assignment(db):
 
 
 def test_reassign_overwrites(db):
-    u1 = auth.create_user("a@fingec.fr", "password123")
-    u2 = auth.create_user("b@fingec.fr", "password123")
+    u1 = auth.create_user("a@fingec.fr", "Valid-Pass-123")
+    u2 = auth.create_user("b@fingec.fr", "Valid-Pass-123")
 
     auth.set_assignment("client@x.com", u1["id"])
     auth.set_assignment("client@x.com", u2["id"])  # un seul propriétaire
@@ -40,7 +40,7 @@ def test_reassign_overwrites(db):
 
 
 def test_unassign_with_none(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     auth.set_assignment("client@x.com", u["id"])
 
     auth.set_assignment("client@x.com", None)
@@ -55,7 +55,7 @@ def test_assign_unknown_user_raises(db):
 
 
 def test_deleting_user_clears_assignments(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     auth.set_assignment("client@x.com", u["id"])
 
     auth.delete_user(u["id"])

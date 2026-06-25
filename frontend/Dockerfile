@@ -9,6 +9,11 @@ COPY . .
 # Vide = même origine que l'API (Caddy route /process,/download,/logs vers le backend).
 ARG VITE_API_URL=
 ENV VITE_API_URL=$VITE_API_URL
+# Suivi des erreurs frontend (Sentry). Vide = désactivé (no-op au runtime).
+ARG VITE_SENTRY_DSN=
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+ARG VITE_SENTRY_ENV=production
+ENV VITE_SENTRY_ENV=$VITE_SENTRY_ENV
 RUN npm run build
 
 # ----- Runtime stage -----

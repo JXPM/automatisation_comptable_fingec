@@ -26,7 +26,7 @@ def test_hash_and_verify_password():
 
 
 def test_token_roundtrip_changes_password(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     token = auth.create_password_token(u["id"], purpose="reset")
 
     # Le jeton en clair n'est jamais stocké tel quel.
@@ -42,7 +42,7 @@ def test_token_roundtrip_changes_password(db):
 
 
 def test_token_is_single_use(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     token = auth.create_password_token(u["id"])
     auth.consume_password_token(token, "premier-mdp-123")
 
@@ -52,7 +52,7 @@ def test_token_is_single_use(db):
 
 
 def test_expired_token_rejected(db, monkeypatch):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     # TTL négatif → jeton déjà expiré à la création.
     monkeypatch.setitem(auth.RESET_TOKEN_TTL, "reset", timedelta(hours=-1))
     token = auth.create_password_token(u["id"], purpose="reset")
@@ -63,7 +63,7 @@ def test_expired_token_rejected(db, monkeypatch):
 
 
 def test_new_token_invalidates_previous(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     first = auth.create_password_token(u["id"])
     second = auth.create_password_token(u["id"])
 
@@ -72,9 +72,9 @@ def test_new_token_invalidates_previous(db):
 
 
 def test_consume_rejects_short_password(db):
-    u = auth.create_user("a@fingec.fr", "password123")
+    u = auth.create_user("a@fingec.fr", "Valid-Pass-123")
     token = auth.create_password_token(u["id"])
-    with pytest.raises(ValueError, match="8 caractères"):
+    with pytest.raises(ValueError, match="12 caractères"):
         auth.consume_password_token(token, "court")
     # Le jeton reste valable puisqu'on n'a rien changé.
     assert auth.verify_password_token(token) is not None

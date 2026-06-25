@@ -80,7 +80,7 @@ export default function AdminPage() {
   };
 
   const resetPassword = async (u: User) => {
-    const pwd = window.prompt(`Nouveau mot de passe pour ${u.email} (min. 8 caractères) :`);
+    const pwd = window.prompt(`Nouveau mot de passe pour ${u.email} (min. 12 caractères, lettres + chiffres + symboles) :`);
     if (!pwd) return;
     patchUser(u.id, { password: pwd }, "Mot de passe réinitialisé.");
   };

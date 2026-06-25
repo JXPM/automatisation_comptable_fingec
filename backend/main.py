@@ -17,7 +17,14 @@ from processor import load_file, clean_data, compute_vat, build_output, detect_a
 from journal import build_journal, write_journal_xlsx, journal_totals
 import auth
 import emailer
+import observability
+import password_policy
+import ratelimit
 from auth import get_current_user, require_admin
+
+# Initialise Sentry au plus tôt (avant la création de l'app) si SENTRY_DSN est
+# défini ; no-op sinon. Capture les exceptions non gérées des endpoints.
+observability.init_sentry()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 # DATA_DIR: répertoire racine pour uploads/outputs/logs.
@@ -75,9 +82,70 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,  # le cookie de session httpOnly doit traverser CORS
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ── Cookie de session & limites anti-bruteforce ──────────────────────────────
+# Le jeton de session est posé dans un cookie httpOnly + Secure : inaccessible au
+# JavaScript (anti-XSS), SameSite=Lax (anti-CSRF sur les requêtes cross-site).
+AUTH_COOKIE_SAMESITE = os.environ.get("AUTH_COOKIE_SAMESITE", "lax")
+TOKEN_TTL_SECONDS = int(auth.TOKEN_TTL.total_seconds())
+
+# Connexion : 5 échecs / 15 min par (IP + e-mail) → blocage temporaire.
+LOGIN_LIMIT, LOGIN_WINDOW = 5, 15 * 60
+# Mot de passe oublié : 5 demandes / heure par IP (limite l'envoi d'e-mails).
+FORGOT_LIMIT, FORGOT_WINDOW = 5, 60 * 60
+
+
+def _cookie_secure() -> bool:
+    # Désactivable en dev HTTP via AUTH_COOKIE_SECURE=0 (le navigateur refuse un
+    # cookie Secure sur une origine non sécurisée).
+    return os.environ.get("AUTH_COOKIE_SECURE", "1").strip().lower() not in {"0", "false", "no", ""}
+
+
+def _set_auth_cookie(response: Response, token: str, remember: bool) -> None:
+    response.set_cookie(
+        key=auth.COOKIE_NAME,
+        value=token,
+        # « Se souvenir » → cookie persistant (durée = TTL du jeton) ; sinon cookie
+        # de session, effacé à la fermeture du navigateur.
+        max_age=TOKEN_TTL_SECONDS if remember else None,
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite=AUTH_COOKIE_SAMESITE,
+        path="/",
+    )
+
+
+def _client_ip(request: Request) -> str:
+    """IP réelle du client. Derrière Caddy, X-Forwarded-For se termine par l'IP
+    que le proxy a constatée (un éventuel en-tête falsifié par le client est
+    poussé à gauche) : on prend donc le DERNIER maillon."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _too_many(retry_after: int) -> HTTPException:
+    minutes = retry_after // 60 + 1
+    return HTTPException(
+        status_code=429,
+        detail=f"Trop de tentatives. Réessayez dans environ {minutes} minute(s).",
+        headers={"Retry-After": str(retry_after)},
+    )
+
+
+async def _reject_if_pwned(password: str) -> None:
+    """Refuse un mot de passe présent dans une fuite connue (HIBP). Best-effort."""
+    if await asyncio.to_thread(password_policy.is_pwned, password):
+        raise HTTPException(
+            status_code=400,
+            detail="Ce mot de passe figure dans une fuite de données connue. Choisissez-en un autre.",
+        )
 
 
 @app.on_event("startup")
@@ -187,6 +255,7 @@ async def health():
 class LoginPayload(BaseModel):
     email: EmailStr
     password: str
+    remember: bool = True
 
 
 class CreateUserPayload(BaseModel):
@@ -223,14 +292,33 @@ def _public_user(user: dict) -> dict:
 
 
 @app.post("/auth/login")
-async def login(payload: LoginPayload):
+async def login(payload: LoginPayload, request: Request, response: Response):
+    # Anti-bruteforce : blocage temporaire après trop d'échecs (par IP + e-mail).
+    key = f"login:{_client_ip(request)}:{payload.email.lower()}"
+    allowed, retry = ratelimit.check(key, limit=LOGIN_LIMIT, window=LOGIN_WINDOW)
+    if not allowed:
+        observability.security_event(
+            "login_blocked", alert=True, ip=_client_ip(request), email=payload.email
+        )
+        raise _too_many(retry)
     user = auth.get_user_by_email(payload.email)
     if user is None or not auth.verify_password(payload.password, user["password_hash"]):
+        ratelimit.record(key, window=LOGIN_WINDOW)  # ne compte que les échecs
+        observability.security_event("login_failed", ip=_client_ip(request), email=payload.email)
         raise HTTPException(status_code=401, detail="E-mail ou mot de passe incorrect.")
     if not user["active"]:
         raise HTTPException(status_code=403, detail="Compte désactivé.")
+    ratelimit.clear(key)  # succès → on remet le compteur à zéro
     token = auth.create_access_token(user)
+    _set_auth_cookie(response, token, payload.remember)
     return {"access_token": token, "token_type": "bearer", "user": _public_user(user)}
+
+
+@app.post("/auth/logout")
+async def logout(response: Response):
+    """Efface le cookie de session côté navigateur."""
+    response.delete_cookie(auth.COOKIE_NAME, path="/")
+    return {"message": "Déconnecté."}
 
 
 @app.get("/auth/me")
@@ -249,7 +337,11 @@ async def add_user(payload: CreateUserPayload, _: dict = Depends(require_admin))
     # inutilisable, puis on envoie un lien de définition par e-mail. L'utilisateur
     # ne peut pas se connecter tant qu'il n'a pas défini son mot de passe.
     send_setup = not (payload.password and payload.password.strip())
-    initial_password = payload.password if not send_setup else secrets.token_urlsafe(24)
+    # Sans mot de passe : secret aléatoire inutilisable (l'utilisateur le définira
+    # via le lien). Le suffixe garantit le respect de la politique de robustesse.
+    initial_password = payload.password if not send_setup else (secrets.token_urlsafe(24) + "Aa1#")
+    if not send_setup:
+        await _reject_if_pwned(initial_password)
     try:
         user = auth.create_user(
             email=payload.email,
@@ -280,6 +372,8 @@ async def patch_user(user_id: int, payload: UpdateUserPayload, admin: dict = Dep
     )
     if losing_admin and auth.count_active_admins(exclude_id=user_id) == 0:
         raise HTTPException(status_code=400, detail="Impossible : c'est le dernier administrateur actif.")
+    if payload.password is not None:
+        await _reject_if_pwned(payload.password)
     try:
         user = auth.update_user(
             user_id, active=payload.active, role=payload.role, password=payload.password
@@ -312,6 +406,7 @@ async def change_password(payload: ChangePasswordPayload, user: dict = Depends(g
     full = auth.get_user_by_email(user["email"])
     if full is None or not auth.verify_password(payload.current_password, full["password_hash"]):
         raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect.")
+    await _reject_if_pwned(payload.new_password)
     try:
         auth.update_user(user["id"], password=payload.new_password)
     except ValueError as e:
@@ -321,12 +416,18 @@ async def change_password(payload: ChangePasswordPayload, user: dict = Depends(g
 
 
 @app.post("/auth/forgot-password")
-async def forgot_password(payload: ForgotPasswordPayload):
+async def forgot_password(payload: ForgotPasswordPayload, request: Request):
     """Demande publique de réinitialisation.
 
     Réponse TOUJOURS identique (200) que l'e-mail existe ou non : on ne révèle pas
-    quels comptes existent (anti-énumération).
+    quels comptes existent (anti-énumération). Limité par IP (anti-abus d'envoi).
     """
+    key = f"forgot:{_client_ip(request)}"
+    allowed, retry = ratelimit.check(key, limit=FORGOT_LIMIT, window=FORGOT_WINDOW)
+    if not allowed:
+        observability.security_event("forgot_password_blocked", alert=True, ip=_client_ip(request))
+        raise _too_many(retry)
+    ratelimit.record(key, window=FORGOT_WINDOW)
     user = auth.get_user_by_email(payload.email)
     if user is not None and user["active"]:
         token = auth.create_password_token(user["id"], purpose="reset")
@@ -349,6 +450,7 @@ async def check_reset_token(token: str):
 @app.post("/auth/reset-password")
 async def reset_password(payload: ResetPasswordPayload):
     """Définit le nouveau mot de passe depuis un lien e-mail (oubli ou création)."""
+    await _reject_if_pwned(payload.new_password)
     try:
         user = auth.consume_password_token(payload.token, payload.new_password)
     except ValueError as e:
@@ -575,6 +677,16 @@ _CLIENT_ACTION_PATHS = {
     "webhook/relance-historique",
 }
 
+# Webhooks accessibles à tout utilisateur authentifié sans condition d'attribution.
+_SHARED_PROXY_PATHS = {"webhook/send-mail"}
+
+# Liste blanche pour les NON-admins. Toute autre route n8n (get-clients,
+# get-historique, send-account-email…) leur est interdite via le proxy : ces
+# données passent par les endpoints serveur /api/* qui les FILTRENT par
+# utilisateur. Sans ce garde-fou, un comptable pourrait appeler get-clients en
+# direct et contourner le filtrage d'attribution.
+_USER_ALLOWED_PROXY_PATHS = _CLIENT_ACTION_PATHS | _SHARED_PROXY_PATHS
+
 
 @app.api_route(
     "/n8n/{path:path}",
@@ -583,6 +695,12 @@ _CLIENT_ACTION_PATHS = {
 async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_current_user)):
     target = f"{N8N_BASE_URL}/{path}"
     body = await request.body()
+    # Liste blanche : un non-admin ne peut relayer que les webhooks autorisés.
+    if user["role"] != "admin" and path not in _USER_ALLOWED_PROXY_PATHS:
+        observability.security_event(
+            "proxy_path_denied", ip=_client_ip(request), email=user["email"], path=path
+        )
+        raise HTTPException(status_code=403, detail="Ce point d'accès n'est pas autorisé.")
     # Enforcement : un comptable ne peut agir que sur SES clients attribués.
     if user["role"] != "admin" and path in _CLIENT_ACTION_PATHS:
         try:
@@ -591,6 +709,10 @@ async def n8n_proxy(path: str, request: Request, user: dict = Depends(get_curren
         except (ValueError, AttributeError):
             target_email = ""
         if not target_email or target_email not in auth.assigned_emails_for(user["id"]):
+            observability.security_event(
+                "proxy_client_denied", ip=_client_ip(request),
+                email=user["email"], path=path, target=target_email,
+            )
             raise HTTPException(status_code=403, detail="Ce client ne vous est pas attribué.")
     # On retire aussi l'en-tête Authorization (jeton du dashboard, pas pour n8n) et
     # les en-têtes conditionnels : sinon n8n peut répondre 304 (corps vide), que le

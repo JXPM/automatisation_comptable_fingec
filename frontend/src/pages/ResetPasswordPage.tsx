@@ -48,8 +48,8 @@ export default function ResetPasswordPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (pwd.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.");
+    if (pwd.length < 12) {
+      setError("Le mot de passe doit contenir au moins 12 caractères.");
       return;
     }
     if (pwd !== confirm) {
@@ -118,8 +118,8 @@ export default function ResetPasswordPage() {
           autoFocus
           value={pwd}
           onChange={(e) => setPwd(e.target.value)}
-          placeholder="Au moins 8 caractères"
-          hint="8 caractères minimum."
+          placeholder="Au moins 12 caractères"
+          hint="12 caractères minimum, en mélangeant lettres, chiffres et symboles."
         />
         <PasswordField
           label="Confirmer le mot de passe"

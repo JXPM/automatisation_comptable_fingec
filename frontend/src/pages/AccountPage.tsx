@@ -21,8 +21,8 @@ export default function AccountPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (next.length < 8) {
-      setError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+    if (next.length < 12) {
+      setError("Le nouveau mot de passe doit contenir au moins 12 caractères.");
       return;
     }
     if (next !== confirm) {
@@ -110,7 +110,7 @@ export default function AccountPage() {
               </div>
             )}
             <PasswordField label="Mot de passe actuel" required value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
-            <PasswordField label="Nouveau mot de passe" required value={next} onChange={(e) => setNext(e.target.value)} placeholder="Au moins 8 caractères" autoComplete="new-password" hint="8 caractères minimum." />
+            <PasswordField label="Nouveau mot de passe" required value={next} onChange={(e) => setNext(e.target.value)} placeholder="Au moins 12 caractères" autoComplete="new-password" hint="12 caractères minimum, en mélangeant lettres, chiffres et symboles." />
             <PasswordField label="Confirmer le nouveau mot de passe" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
             <button type="submit" disabled={loading} style={{
               width: "100%", marginTop: 8, padding: "12px", borderRadius: 11, border: "none",

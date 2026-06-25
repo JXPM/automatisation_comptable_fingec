@@ -1,10 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import {
+  API_URL,
   authFetch,
-  clearSession,
-  getStoredUser,
-  getToken,
-  setSession,
+  logoutRequest,
   setUnauthorizedHandler,
   type User,
 } from "../utils/api";
@@ -19,21 +17,18 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(getStoredUser);
-  const [loading, setLoading] = useState<boolean>(!!getToken());
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Déconnexion automatique si l'API renvoie 401 (jeton expiré/invalide).
+  // Déconnexion automatique si l'API renvoie 401 (cookie expiré/invalide).
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null));
     return () => setUnauthorizedHandler(null);
   }, []);
 
-  // Au montage, si un jeton existe, on revalide la session auprès du backend.
+  // Au montage, on demande au backend qui nous sommes : le cookie httpOnly est
+  // envoyé automatiquement. 200 → session valide ; 401 → pas de session.
   useEffect(() => {
-    if (!getToken()) {
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
     (async () => {
       try {
@@ -51,23 +46,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string, remember = true) => {
-    const res = await fetch(`${(import.meta.env.VITE_API_URL ?? "")}/auth/login`, {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
+      credentials: "include", // reçoit et stocke le cookie de session httpOnly
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember }),
     });
     if (!res.ok) {
       const detail = await res.json().catch(() => null);
       throw new Error(detail?.detail ?? "Échec de la connexion.");
     }
     const data = await res.json();
-    setSession(data.access_token, data.user, remember);
     setUser(data.user);
     return data.user as User;
   };
 
   const logout = () => {
-    clearSession();
+    logoutRequest(); // efface le cookie côté serveur (best-effort)
     setUser(null);
   };
 

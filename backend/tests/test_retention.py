@@ -73,8 +73,8 @@ def test_purge_logs_drops_old_entries(isolated, monkeypatch):
 
 def test_purge_expired_tokens(isolated, monkeypatch):
     # Deux utilisateurs distincts : créer un jeton n'invalide que ceux du même user.
-    a = auth.create_user("a@fingec.fr", "password123")
-    b = auth.create_user("b@fingec.fr", "password123")
+    a = auth.create_user("a@fingec.fr", "Valid-Pass-123")
+    b = auth.create_user("b@fingec.fr", "Valid-Pass-123")
     valid = auth.create_password_token(a["id"], purpose="setup")
     # Jeton expiré pour B : supprimé par la purge.
     monkeypatch.setitem(auth.RESET_TOKEN_TTL, "reset", timedelta(hours=-1))
