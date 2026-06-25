@@ -24,6 +24,7 @@ updated: 2026-06-22
 | [[12 - E-mails de compte (emailer + n8n)]] | Webhook `send-account-email`, modèles, **échec silencieux**, expéditeur |
 | [[13 - Traitement comptable (Quadra)]] | Pipeline pandas, TVA France/Non-France, 8 anomalies, score (= **vue contrôle**) |
 | [[14 - Journal d'écritures Quadra]] | **Livrable** : écritures partie double (journal VTE), mapping comptes, équilibre, config `journal_config.json` |
+| [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]] | **Cookie httpOnly**, politique mdp (≥12 car. + HIBP), rate limiting, proxy n8n verrouillé |
 | [[16 - Outils en ligne de commande (cli & manage)]] | `cli.py` (traitement hors UI) + `manage.py` (admin comptes : create-admin, list…) |
 
 ## 🖥️ Frontend
@@ -51,6 +52,7 @@ updated: 2026-06-22
 | [[41 - Caddy & routage]] | Matcher `@api`, bind-mount obsolète, sous-domaines |
 | [[42 - Conteneurs, images & exécution]] | 3 conteneurs Docker (backend/frontend/n8n), images, nginx, variables d'env |
 | [[43 - Vestiges Render-Vercel & fichiers brouillons]] | ✅ render.yaml/vercel.json/Journal.sh/settings.json **supprimés** (trace de la migration Render→VPS) |
+| [[44 - Monitoring & observabilité]] | **Sentry** (erreurs+sécurité) + Uptime Kuma/Netdata/Dozzle (tunnel SSH) ; `deploy/MONITORING.md` |
 
 ## 🔒 Conformité & légal
 | Page | Résumé |
@@ -69,7 +71,8 @@ updated: 2026-06-22
 |---|---|---|
 | [[2026-06-17 - Session debug OAuth & refonte e-mail de compte]] | 2026-06-17 | Diagnostic OAuth, refonte e-mail de compte, incident CI |
 
-## Métriques (au 2026-06-22)
-- Pages de synthèse : **28** (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 3 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[60 - Outillage du dépôt (assistant, règles, skills)]] — secret à révoquer).
+## Métriques (au 2026-06-25)
+- Suite de tests : **90** (was 71) — ajout de `test_security.py` + `test_password_policy.py` ([[51 - Tests automatisés]]).
+- Pages de synthèse : **30** (+ [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]], [[44 - Monitoring & observabilité]]) (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 3 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[60 - Outillage du dépôt (assistant, règles, skills)]] — secret à révoquer).
 - Frontmatter `type:` sur toutes les pages (requêtable via Dataview).
 - Commandes actives : `/ingest` · `/query` · `/save` · `/lint` (cf. [[CLAUDE]] §8).

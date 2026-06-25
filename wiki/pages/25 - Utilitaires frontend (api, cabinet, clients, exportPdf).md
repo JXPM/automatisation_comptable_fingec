@@ -1,7 +1,7 @@
 ---
 type: reference
 tags: [fingec, automatisation-comptable, frontend, utils]
-updated: 2026-06-22
+updated: 2026-06-25
 status: stable
 ---
 
@@ -11,9 +11,11 @@ Helpers de `frontend/src/utils/` + `theme.ts`.
 
 ## `api.ts` — accès API & session
 - `API_URL = import.meta.env.VITE_API_URL ?? ""` (vide en dév → proxy Vite vers `:8001` ; vide en prod → même origine Caddy). Commentaire « Vercel » corrigé → prod = **VPS Hostinger/Caddy** ([[02 - Architecture globale]]).
-- **Session** : `setSession(token, user, remember=true)` → `localStorage` (persistant) ou `sessionStorage` (durée de l'onglet) ; `getToken`/`getStoredUser`/`clearSession` lisent/purgent **les deux** stores. Clés `fingec_token` / `fingec_user`.
-- `authFetch(path, opts)` : ajoute `Authorization: Bearer <token>` + `cache:"no-store"` ; sur **401** → `clearSession()` + handler (déconnexion) — enregistré par `AuthContext`.
-- `downloadFile(filename)` : GET `/download/{filename}` en **fetch+blob** (un `<a download>` ne porte pas le header Bearer) ; nom de sauvegarde = le fichier sans préfixe `output_`.
+- **Session = cookie httpOnly** (depuis 2026-06-25) : le front **ne stocke plus aucun jeton** en JS (anti-XSS). `setSession`/`getToken`/`clearSession`/`getStoredUser` **supprimés**. Le cookie `fingec_token` est posé par le backend au login. [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]].
+- `authFetch(path, opts)` : `credentials:"include"` (envoie le cookie) + `cache:"no-store"` ; sur **401** → handler de déconnexion (enregistré par `AuthContext`).
+- `logoutRequest()` : `POST /auth/logout` (efface le cookie côté serveur). `AuthContext` détermine la session au montage via `GET /auth/me`.
+- `downloadFile(filename)` : GET `/download/{filename}` en **fetch+blob** (un `<a download>` ne porte pas la session) ; nom de sauvegarde = le fichier sans préfixe `output_`.
+- **Suivi d'erreurs** : `main.tsx` initialise `@sentry/react` si `VITE_SENTRY_DSN` ([[44 - Monitoring & observabilité]]).
 
 ## `cabinet.ts` — coordonnées de signature
 - `CabinetInfo { adresse, telephone, ordre, contact }`, persistées en localStorage (`fingec_cabinet`) — éditables dans [[21 - Signature e-mail & charte Fingec]] sans toucher au code.

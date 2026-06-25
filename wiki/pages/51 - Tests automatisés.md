@@ -1,13 +1,13 @@
 ---
 type: reference
 tags: [fingec, automatisation-comptable, tests, qualite]
-updated: 2026-06-22
+updated: 2026-06-25
 status: stable
 ---
 
 # 51 — Tests automatisés
 
-Suite **pytest** du backend : **71 tests** (au 2026-06-22), tous verts. Exécutés en CI à chaque push/PR ([[40 - Déploiement (CI-CD & VPS)]]) et **bloquants avant déploiement**. Pas de tests unitaires frontend (la CI fait `tsc --noEmit` + `build`) ; des e2e Playwright existent (`frontend/e2e/auth.spec.ts`).
+Suite **pytest** du backend : **90 tests** (au 2026-06-25), tous verts. Exécutés en CI à chaque push/PR ([[40 - Déploiement (CI-CD & VPS)]]) et **bloquants avant déploiement**. Pas de tests unitaires frontend (la CI fait `tsc --noEmit` + `build`) ; des e2e Playwright existent (`frontend/e2e/auth.spec.ts`).
 
 ## Fixtures partagées (`backend/tests/conftest.py`)
 Ajoute `backend/` au `sys.path` (import direct `from processor import …`). Fournit `sample_clean_df`, `csv_file` (Shopify), `excel_file` (TikTok, feuille `Statement` + feuille à ignorer), `excel_no_statement`.
@@ -21,6 +21,8 @@ Ajoute `backend/` au `sys.path` (import direct `from processor import …`). Fou
 | `test_password.py` | 7 | Jetons de mot de passe (setup/reset, usage unique, expiration, SHA-256) + hachage bcrypt. |
 | `test_assignments.py` | 5 | Attribution client→utilisateur (`auth.py`) : set/get, filtrage par comptable. |
 | `test_retention.py` | 4 | Purge RGPD : exports `output/*.xlsx`, `logs.json`, jetons expirés. [[Conformité RGPD & pack légal]]. |
+| `test_security.py` | **10** | Cookie httpOnly au login, logout, **rate limiting** connexion/oubli (429), refus mdp faible/compromis, contrôles admin serveur, **liste blanche proxy n8n**. [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]]. |
+| `test_password_policy.py` | **9** | Politique mdp : longueur/diversité/e-mail, **HIBP** (mock réseau : trouvé, absent, fail-open, désactivé). |
 
 ## Lancer
 ```bash
