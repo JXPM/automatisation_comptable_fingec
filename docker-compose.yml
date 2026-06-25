@@ -17,6 +17,16 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-https://app.fingec.fr}
       # Secret de signature des jetons de session (obligatoire en prod).
       AUTH_SECRET: ${AUTH_SECRET:-}
+      # Cookie de session httpOnly + politique mots de passe + anti-bruteforce.
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-1}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-12}
+      PASSWORD_MIN_CLASSES: ${PASSWORD_MIN_CLASSES:-3}
+      PWNED_CHECK_ENABLED: ${PWNED_CHECK_ENABLED:-1}
+      RATELIMIT_ENABLED: ${RATELIMIT_ENABLED:-1}
+      # Suivi des erreurs / événements sécurité (Sentry). Vide = désactivé.
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENV: ${SENTRY_ENV:-production}
       # Amorçage du 1er admin au tout premier démarrage (base vide).
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
@@ -40,6 +50,8 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ""
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+        VITE_SENTRY_ENV: ${SENTRY_ENV:-production}
     image: fingec-frontend:latest
     container_name: fingec-frontend
     restart: unless-stopped

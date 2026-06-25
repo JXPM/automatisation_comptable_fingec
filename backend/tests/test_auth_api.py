@@ -35,6 +35,12 @@ def client(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("ADMIN_EMAIL", "admin@fingec.fr")
     monkeypatch.setenv("ADMIN_PASSWORD", "admin-password-1")
 
+    # Neutralise les protections à effets de bord pour ces tests fonctionnels :
+    # rate limiting (état partagé entre tests), HIBP (réseau), cookie Secure (HTTP).
+    monkeypatch.setenv("RATELIMIT_ENABLED", "0")
+    monkeypatch.setenv("PWNED_CHECK_ENABLED", "0")
+    monkeypatch.setenv("AUTH_COOKIE_SECURE", "0")
+
     with TestClient(main.app) as c:
         c.sent = sent  # type: ignore[attr-defined]
         yield c

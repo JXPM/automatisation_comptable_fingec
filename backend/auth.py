@@ -16,8 +16,13 @@ from pathlib import Path
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+import password_policy
+
+# Nom du cookie httpOnly qui porte le jeton de session côté navigateur.
+COOKIE_NAME = "fingec_token"
 
 # ── Configuration ────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -179,8 +184,7 @@ def create_user(email: str, password: str, full_name: str = "", role: str = "use
     email = email.strip().lower()
     if "@" not in email or len(email) < 3:
         raise ValueError("Adresse e-mail invalide.")
-    if len(password) < 8:
-        raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
+    password_policy.validate_strength(password, email=email)
     if role not in {"user", "admin"}:
         raise ValueError("Rôle invalide.")
     with _db_lock, _connect() as conn:
@@ -213,8 +217,7 @@ def update_user(user_id: int, *, active: bool | None = None,
         fields.append("role = ?")
         params.append(role)
     if password is not None:
-        if len(password) < 8:
-            raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
+        password_policy.validate_strength(password)
         fields.append("password_hash = ?")
         params.append(hash_password(password))
     if not fields:
@@ -345,8 +348,6 @@ def consume_password_token(raw: str, new_password: str) -> dict:
     Atomique : tout se fait sous le même verrou/transaction pour éviter qu'un
     jeton soit rejoué en parallèle.
     """
-    if len(new_password) < 8:
-        raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
     token_hash = _hash_token(raw or "")
     now = datetime.now(timezone.utc)
     with _db_lock, _connect() as conn:
@@ -358,6 +359,10 @@ def consume_password_token(raw: str, new_password: str) -> dict:
             raise ValueError("Lien invalide ou déjà utilisé.")
         if datetime.fromisoformat(row["expires_at"]) < now:
             raise ValueError("Lien expiré. Demandez-en un nouveau.")
+        # Politique appliquée une fois le lien validé (l'e-mail du compte sert au
+        # contrôle « le mot de passe ne contient pas l'adresse »).
+        urow = conn.execute("SELECT email FROM users WHERE id = ?", (row["user_id"],)).fetchone()
+        password_policy.validate_strength(new_password, email=urow["email"] if urow else None)
         conn.execute(
             "UPDATE users SET password_hash = ?, active = 1 WHERE id = ?",
             (hash_password(new_password), row["user_id"]),
@@ -420,15 +425,21 @@ _bearer = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> dict:
-    if credentials is None:
+    # Précédence à l'en-tête Authorization (clients hors navigateur : CLI, tests),
+    # puis repli sur le cookie httpOnly posé au login (navigateur).
+    token = credentials.credentials if credentials is not None else None
+    if not token:
+        token = request.cookies.get(COOKIE_NAME)
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentification requise.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    payload = _decode_token(credentials.credentials)
+    payload = _decode_token(token)
     user = get_user_by_id(int(payload.get("sub", 0)))
     if user is None or not user["active"]:
         raise HTTPException(

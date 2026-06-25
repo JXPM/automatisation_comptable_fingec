@@ -1,15 +1,24 @@
 ---
 type: system
 tags: [fingec, automatisation-comptable, infra, ci-cd, docker]
-updated: 2026-06-17
+updated: 2026-06-25
 sources: ["[[2026-06-17 - Session debug OAuth & refonte e-mail de compte]]"]
 ---
 
 # 40 — Déploiement (CI-CD & VPS)
 
 ## Hébergement
-- **VPS Hostinger** (`srv1713887`), app servie sur **`app.fingec.fr`**, derrière le **Caddy partagé** de pharmaclick. Conteneurs Docker : `fingec-backend`, `fingec-n8n`. Cf. mémoire « Déploiement VPS Hostinger » + [[Écosystème Fingec]].
-- Fichiers : `docker-compose.yml`, `Dockerfile.backend`. `render.yaml` présent (déploiement Render alternatif/historique).
+- **VPS Hostinger** (`srv1713887`), app servie sur **`app.fingec.fr`**, derrière le **Caddy partagé** de pharmaclick. Conteneurs Docker : `fingec-backend`, `fingec-frontend`, `fingec-n8n`. Cf. mémoire « Déploiement VPS Hostinger » + [[Écosystème Fingec]].
+- Fichiers : `docker-compose.yml`, `Dockerfile.backend`, `frontend/Dockerfile`. `render.yaml` **supprimé** ([[43 - Vestiges Render-Vercel & fichiers brouillons]]).
+
+## Variables d'environnement (`.env` à côté du compose)
+- **Auth/session** : `AUTH_SECRET`, `AUTH_COOKIE_SECURE` (1 ; 0 en dev HTTP), `AUTH_COOKIE_SAMESITE`.
+- **Politique mdp / anti-bruteforce** : `PASSWORD_MIN_LENGTH` (12), `PASSWORD_MIN_CLASSES` (3), `PWNED_CHECK_ENABLED` (1), `RATELIMIT_ENABLED` (1). [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]].
+- **Monitoring** : `SENTRY_DSN`, `VITE_SENTRY_DSN` (build front), `SENTRY_ENV`. [[44 - Monitoring & observabilité]].
+- RGPD : `OUTPUT_RETENTION_DAYS`, `LOGS_RETENTION_DAYS` ([[Conformité RGPD & pack légal]]). Tous documentés dans `.env.example`.
+
+## Overlay monitoring (optionnel)
+`docker-compose.monitoring.yml` (Uptime Kuma + Netdata + Dozzle, ports `127.0.0.1`, accès tunnel SSH). `docker compose -f docker-compose.monitoring.yml up -d`. Guide : `deploy/MONITORING.md`. [[44 - Monitoring & observabilité]].
 
 ## GitHub Actions
 Deux workflows (`.github/workflows/`), déclenchés sur **push `main`** :

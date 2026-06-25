@@ -1,7 +1,7 @@
 ---
 type: log
 tags: [log, journal]
-updated: 2026-06-17
+updated: 2026-06-25
 ---
 
 # 🪵 Journal du Wiki
@@ -116,3 +116,13 @@ updated: 2026-06-17
 - Aucune référence depuis le code (seul `skills/deploy/deploy-config.md`, lui-même supprimé). **Vérifié** : `npm run build` OK + import backend OK.
 - Wiki recalé : [[43 - Vestiges Render-Vercel & fichiers brouillons]] et [[60 - Outillage du dépôt (assistant, règles, skills)]] passés en « supprimé », index/métriques à jour.
 - ⏳ Reste le seul point ouvert : **révoquer le mot de passe** d'`expert@fingec.fr` (exposé dans `.claude/settings.local.json`).
+
+## [2026-06-25] feature | Durcissement sécurité (4 lots) + monitoring
+- **Sécurité** (page créée : [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]]) :
+  1. Jeton de session déplacé de localStorage/Bearer → **cookie httpOnly+Secure+SameSite=Lax** (`fingec_token`) ; `get_current_user` lit header puis cookie ; `POST /auth/logout` ; CORS `allow_credentials`. Front : `api.ts` ne stocke plus de jeton, `credentials:"include"`, `AuthContext` via `/auth/me`. [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]].
+  2. Contrôles admin déjà serveur (`require_admin`) ; **trou bouché** : le proxy `/n8n/*` laissait un non-admin appeler get-clients/get-historique/send-account-email → **liste blanche** `_USER_ALLOWED_PROXY_PATHS`. [[10 - Backend FastAPI]].
+  3. **Rate limiting** (`backend/ratelimit.py`) : connexion 5 échecs/15 min (IP+e-mail), oubli 5/h (IP) → 429. IP = dernier maillon X-Forwarded-For.
+  4. **Politique mdp** (`backend/password_policy.py`) : ≥12 car. + 3 familles + pas d'e-mail + **HIBP** (k-anonymity, fail-open). Front aligné à 12.
+- **Monitoring** (page créée : [[44 - Monitoring & observabilité]]) : **Sentry SaaS UE** (erreurs + événements sécurité via `observability.security_event`, alerte e-mail) ; overlay `docker-compose.monitoring.yml` (Uptime Kuma/Netdata/Dozzle, tunnel SSH) ; guide `deploy/MONITORING.md`. Tout inerte sans DSN.
+- **Tests** : suite **71 → 90** (`test_security.py`, `test_password_policy.py`) ; build front OK ; les 2 compose valident. Pages màj : [[11 - Authentification & comptes]], [[40 - Déploiement (CI-CD & VPS)]], index/métriques.
+- ⏳ Reste **côté Johan** (secrets/manuel) : révoquer mdp `expert@fingec.fr` ; créer 2 projets Sentry + DSN ; lancer l'overlay monitoring ; config SMTP Uptime Kuma. Rien n'est commité (validation Johan).

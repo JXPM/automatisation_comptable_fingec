@@ -1,0 +1,73 @@
+# Stack de MONITORING fingec — overlay OPTIONNEL, séparé du compose principal.
+#
+#   docker compose -f docker-compose.monitoring.yml up -d
+#
+# Sécurité : AUCUN dashboard n'est exposé publiquement. Tous les ports sont
+# publiés sur 127.0.0.1 uniquement → on y accède par tunnel SSH depuis ton poste :
+#
+#   ssh -L 3001:127.0.0.1:3001 -L 19999:127.0.0.1:19999 -L 8888:127.0.0.1:8888 <user>@srv1713887
+#
+# puis, dans le navigateur :
+#   http://localhost:3001  → Uptime Kuma (disponibilité + alertes e-mail/TLS)
+#   http://localhost:19999 → Netdata     (CPU/RAM/disque/conteneurs en temps réel)
+#   http://localhost:8888  → Dozzle      (logs des conteneurs en direct)
+#
+# Détails de mise en route : deploy/MONITORING.md
+services:
+  # ── Disponibilité (uptime) + alertes ──────────────────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: fingec-uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - fingec-uptime-kuma:/app/data
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks:
+      - web  # permet de sonder http://fingec-backend:8000/health par nom interne
+
+  # ── Métriques serveur (CPU/RAM/disque/conteneurs) ─────────────────────────
+  netdata:
+    image: netdata/netdata:stable
+    container_name: fingec-netdata
+    restart: unless-stopped
+    hostname: srv-fingec
+    pid: host
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    ports:
+      - "127.0.0.1:19999:19999"
+    volumes:
+      - fingec-netdata-config:/etc/netdata
+      - fingec-netdata-lib:/var/lib/netdata
+      - fingec-netdata-cache:/var/cache/netdata
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # ── Logs des conteneurs en direct ─────────────────────────────────────────
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: fingec-dozzle
+    restart: unless-stopped
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "127.0.0.1:8888:8080"
+
+# Réseau partagé avec pharmaclick (déjà créé), pour joindre fingec-backend par nom.
+networks:
+  web:
+    external: true
+    name: pharmaclick_web
+
+volumes:
+  fingec-uptime-kuma:
+  fingec-netdata-config:
+  fingec-netdata-lib:
+  fingec-netdata-cache:

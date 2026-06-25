@@ -1,10 +1,13 @@
 ---
 type: system
 tags: [fingec, automatisation-comptable, backend, auth]
-updated: 2026-06-17
+updated: 2026-06-25
 ---
 
 # 11 — Authentification & comptes
+
+> [!important] Durcissement 2026-06-25
+> Session → **cookie httpOnly** (plus de Bearer en localStorage), **politique de mot de passe** renforcée (≥12 car., 3 familles, HIBP) et **rate limiting** sur connexion/oubli. Détail complet : [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]].
 
 Tout dans `backend/auth.py` (SQLite stdlib, pas d'ORM). Pensé pour quelques dizaines d'utilisateurs avec turnover (alternants/stagiaires).
 
@@ -15,16 +18,18 @@ Tout dans `backend/auth.py` (SQLite stdlib, pas d'ORM). Pensé pour quelques diz
 
 ## Mots de passe & jetons
 - Hachage **bcrypt** (`hash_password` / `verify_password`).
-- **JWT HS256**, TTL **8 h** (`TOKEN_TTL`), signé par `AUTH_SECRET` (⚠️ éphémère si non défini → sessions invalidées au redémarrage).
+- **Politique de robustesse** (`backend/password_policy.py`) appliquée à toute définition de mdp : **≥ 12 caractères**, **≥ 3 familles** de caractères, pas de mdp contenant l'e-mail, **contrôle Have I Been Pwned** (k-anonymity). [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]].
+- **JWT HS256**, TTL **8 h** (`TOKEN_TTL`), signé par `AUTH_SECRET` (⚠️ éphémère si non défini → sessions invalidées au redémarrage). Transporté par un **cookie httpOnly+Secure+SameSite=Lax** (`fingec_token`), plus en localStorage.
 - Jetons mot de passe (liens e-mail) — TTL par usage (`RESET_TOKEN_TTL`) :
   - **`setup`** (première définition à la création) : **72 h**.
   - **`reset`** (mot de passe oublié) : **2 h**.
   - Générer un jeton **invalide les précédents non utilisés** du même user (un seul lien valable). `consume_password_token` est atomique (anti-rejeu) et **réactive** le compte (`active = 1`).
 
 ## Rôles & dépendances FastAPI
-- `get_current_user` (Bearer) → 401 si absent/expiré/désactivé.
+- `get_current_user` lit le jeton **en-tête Authorization d'abord** (CLI/tests) **puis cookie** (navigateur) → 401 si absent/expiré/désactivé.
 - `require_admin` → 403 si non-admin.
 - **Rôles** : `user` (comptable) | `admin` (cabinet).
+- **Anti-bruteforce** : connexion limitée à **5 échecs / 15 min** (par IP+e-mail), oubli à **5 / h** (par IP) → 429. [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]].
 
 ## Cycle de vie d'un compte
 1. **Création** (admin, `POST /auth/users`) : sans mot de passe fourni → compte créé avec un secret aléatoire inutilisable, puis **e-mail d'invitation** (`setup`) avec lien. L'utilisateur ne peut pas se connecter tant qu'il n'a pas défini son mot de passe. [[12 - E-mails de compte (emailer + n8n)]].
