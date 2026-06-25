@@ -218,6 +218,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <NavLink
                   to={to}
                   end={to === "/"}
+                  data-tour={`nav-${to}`}
                   style={{
                     display: "flex", alignItems: "center", gap: 11,
                     padding: "10px 12px", borderRadius: 10, marginBottom: 3,

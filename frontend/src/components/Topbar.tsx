@@ -47,6 +47,7 @@ export default function Topbar() {
       <div ref={ref} style={{ position: "relative" }}>
         <motion.button
           onClick={() => setOpen((v) => !v)}
+          data-tour="account"
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Menu du compte"
