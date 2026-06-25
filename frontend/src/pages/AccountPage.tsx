@@ -5,6 +5,7 @@ import { useToast } from "../components/Toast";
 import { PasswordField } from "../components/AuthShell";
 import PageHeader from "../components/PageHeader";
 import Avatar from "../components/Avatar";
+import { openOnboardingGuide } from "../components/OnboardingGuide";
 import { fileToAvatarDataUrl } from "../utils/image";
 import { B, B_DARK } from "../theme";
 
@@ -177,6 +178,13 @@ export default function AccountPage() {
             boxShadow: !profileDirty || savingProfile ? "none" : "var(--shadow-glow)",
           }}>
             {savingProfile ? "Enregistrement…" : "Enregistrer les modifications"}
+          </button>
+
+          <button type="button" onClick={openOnboardingGuide} style={{ ...logoutStyle, marginTop: 16, color: B, borderColor: "var(--line-2)" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Revoir le guide de prise en main
           </button>
 
           <button type="button" onClick={logout} style={logoutStyle}>

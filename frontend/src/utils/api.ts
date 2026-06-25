@@ -18,6 +18,7 @@ export interface User {
   role: string;
   active: boolean;
   avatar_url?: string;
+  onboarded?: boolean;
   created_at: string;
 }
 

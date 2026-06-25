@@ -3,6 +3,7 @@ import { ToastProvider } from "./components/Toast";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Layout from "./components/Layout";
+import OnboardingGuide from "./components/OnboardingGuide";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -25,6 +26,8 @@ function ProtectedLayout() {
       <Layout>
         <Outlet />
       </Layout>
+      {/* Guide de prise en main : s'ouvre à la première connexion, relançable depuis le compte. */}
+      <OnboardingGuide />
     </ProtectedRoute>
   );
 }

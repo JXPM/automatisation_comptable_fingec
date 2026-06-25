@@ -199,3 +199,19 @@ def test_update_profile_rejects_empty_name_and_bad_image(client):
 
 def test_update_profile_requires_auth(client):
     assert client.patch("/auth/me", json={"full_name": "X"}).status_code == 401
+
+
+def test_onboarded_flag_lifecycle(client):
+    admin = _login(client, "admin@fingec.fr", "admin-password-1")
+    client.post("/auth/users", headers=_auth(admin),
+                json={"email": "o@fingec.fr", "password": "profil-mdp-123"})
+    token = _login(client, "o@fingec.fr", "profil-mdp-123")
+
+    # Nouveau compte : pas encore passé par le guide.
+    assert client.get("/auth/me", headers=_auth(token)).json()["onboarded"] is False
+
+    # Marqué comme vu, puis persistant.
+    res = client.patch("/auth/me", headers=_auth(token), json={"onboarded": True})
+    assert res.status_code == 200
+    assert res.json()["onboarded"] is True
+    assert client.get("/auth/me", headers=_auth(token)).json()["onboarded"] is True

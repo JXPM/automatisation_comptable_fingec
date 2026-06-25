@@ -277,6 +277,7 @@ class UpdateProfilePayload(BaseModel):
     # L'utilisateur peut modifier son nom et sa photo, jamais son e-mail.
     full_name: str | None = None
     avatar_url: str | None = None  # data URL (image redimensionnée côté client) ou "" pour retirer
+    onboarded: bool | None = None  # marque le guide de prise en main comme vu
 
 
 class ChangePasswordPayload(BaseModel):
@@ -295,7 +296,7 @@ class ResetPasswordPayload(BaseModel):
 
 def _public_user(user: dict) -> dict:
     return {k: user.get(k) for k in
-            ("id", "email", "full_name", "role", "active", "avatar_url", "created_at")}
+            ("id", "email", "full_name", "role", "active", "avatar_url", "onboarded", "created_at")}
 
 
 # Limite la taille du data URL d'avatar (~1,5 Mo de base64). L'image est déjà
@@ -356,6 +357,8 @@ async def update_me(payload: UpdateProfilePayload, user: dict = Depends(get_curr
         if len(avatar) > _AVATAR_MAX_CHARS:
             raise HTTPException(status_code=422, detail="Image trop volumineuse.")
         updates["avatar_url"] = avatar
+    if payload.onboarded is not None:
+        updates["onboarded"] = payload.onboarded
     if not updates:
         raise HTTPException(status_code=400, detail="Aucune modification fournie.")
     updated = auth.update_user(user["id"], **updates)
