@@ -17,8 +17,19 @@ sources: ["[[2026-06-17 - Session debug OAuth & refonte e-mail de compte]]"]
 - **Monitoring** : `SENTRY_DSN`, `VITE_SENTRY_DSN` (build front), `SENTRY_ENV`. [[44 - Monitoring & observabilité]].
 - RGPD : `OUTPUT_RETENTION_DAYS`, `LOGS_RETENTION_DAYS` ([[Conformité RGPD & pack légal]]). Tous documentés dans `.env.example`.
 
+## Accès & exploitation (runbook)
+- **Dossier projet sur le VPS** : **`/opt/fingec`** (`docker-compose.yml`, `docker-compose.monitoring.yml`, `.env`).
+- **SSH par clé** (pas de mot de passe — auth password désactivée) : `root@srv1713887.hstgr.cloud`, clé `bilejohan04@gmail.com`. Tunnel dashboards : `ssh -L 3001:127.0.0.1:3001 -L 19999:127.0.0.1:19999 -L 8888:127.0.0.1:8888 root@srv1713887.hstgr.cloud`.
+- **Terminal hôte Hostinger** : bouton **« Terminal ↗ »** du *Gestionnaire Docker* (≠ les « Terminal » sous un conteneur).
+
+> [!warning] 3 projets Docker distincts sur ce VPS — NE PAS mélanger
+> `fingec` (backend/frontend/n8n) · `fingec-site` (1 conteneur) · `pharmaclick` (3 conteneurs, voisin partageant le [[41 - Caddy & routage|Caddy]]). Cibler `fingec` uniquement ; le monitoring tourne dans son projet isolé `fingec-monitoring`.
+
+> [!tip] Coller dans le terminal Hostinger
+> Le coller ajoute 2 espaces par ligne (casse heredocs/indentation Python) → **commandes sur une seule ligne**, sans emoji. ([[2026-06-25 - Déploiement sécurité & monitoring (prod)]]).
+
 ## Overlay monitoring (optionnel)
-`docker-compose.monitoring.yml` (Uptime Kuma + Netdata + Dozzle, ports `127.0.0.1`, accès tunnel SSH). `docker compose -f docker-compose.monitoring.yml up -d`. Guide : `deploy/MONITORING.md`. [[44 - Monitoring & observabilité]].
+`docker-compose.monitoring.yml` (Uptime Kuma + Netdata + Dozzle, ports `127.0.0.1`, accès tunnel SSH). Lancé **isolé** : `docker compose -p fingec-monitoring -f docker-compose.monitoring.yml up -d`. Guide : `deploy/MONITORING.md`. [[44 - Monitoring & observabilité]].
 
 ## GitHub Actions
 Deux workflows (`.github/workflows/`), déclenchés sur **push `main`** :

@@ -126,3 +126,10 @@ updated: 2026-06-25
 - **Monitoring** (page créée : [[44 - Monitoring & observabilité]]) : **Sentry SaaS UE** (erreurs + événements sécurité via `observability.security_event`, alerte e-mail) ; overlay `docker-compose.monitoring.yml` (Uptime Kuma/Netdata/Dozzle, tunnel SSH) ; guide `deploy/MONITORING.md`. Tout inerte sans DSN.
 - **Tests** : suite **71 → 90** (`test_security.py`, `test_password_policy.py`) ; build front OK ; les 2 compose valident. Pages màj : [[11 - Authentification & comptes]], [[40 - Déploiement (CI-CD & VPS)]], index/métriques.
 - ⏳ Reste **côté Johan** (secrets/manuel) : révoquer mdp `expert@fingec.fr` ; créer 2 projets Sentry + DSN ; lancer l'overlay monitoring ; config SMTP Uptime Kuma. Rien n'est commité (validation Johan).
+
+## [2026-06-25] deploy | Mise en production sécurité + monitoring
+- Source : [[2026-06-25 - Déploiement sécurité & monitoring (prod)]].
+- **PR #1 mergée** (3 commits) → CI verte → **Deploy to VPS OK** (backend healthy). Sécurité ([[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]]) **en prod** ; login re-testé OK après migration cookie.
+- **Sentry** branché et **vérifié** (événement test reçu) : projets `fingec-backend` + `fingec-frontend` (UE), DSN dans `/opt/fingec/.env`. **Uptime Kuma** vert sur `/health` (+ alerte TLS). **Netdata/Dozzle** actifs. Projet Docker isolé **`fingec-monitoring`**. [[44 - Monitoring & observabilité]].
+- **Runbook capturé** : dossier `/opt/fingec`, **SSH par clé** `root@srv1713887.hstgr.cloud` (pas de mot de passe), terminal hôte Hostinger « Terminal ↗ », **3 projets Docker à ne pas mélanger** (`fingec`/`fingec-site`/`pharmaclick`), pièges de coller (espaces/heredoc/emoji → 1 ligne). Pages màj : [[40 - Déploiement (CI-CD & VPS)]], index/sources.
+- ⏳ Reste optionnel : e-mail Uptime Kuma (mdp d'application Gmail) ; règle d'alerte Sentry ; (hérité) révoquer mdp `expert@fingec.fr`.

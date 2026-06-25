@@ -70,9 +70,11 @@ updated: 2026-06-22
 | Source | Date | Résumé |
 |---|---|---|
 | [[2026-06-17 - Session debug OAuth & refonte e-mail de compte]] | 2026-06-17 | Diagnostic OAuth, refonte e-mail de compte, incident CI |
+| [[2026-06-25 - Déploiement sécurité & monitoring (prod)]] | 2026-06-25 | Mise en prod sécurité+monitoring ; runbook VPS (`/opt/fingec`, SSH clé, 3 projets Docker, Sentry, Uptime Kuma) |
 
 ## Métriques (au 2026-06-25)
 - Suite de tests : **90** (was 71) — ajout de `test_security.py` + `test_password_policy.py` ([[51 - Tests automatisés]]).
+- Sources : **2** (ajout : [[2026-06-25 - Déploiement sécurité & monitoring (prod)]]).
 - Pages de synthèse : **30** (+ [[15 - Durcissement sécurité (cookie, mdp, anti-bruteforce)]], [[44 - Monitoring & observabilité]]) (+ ingestion exhaustive du dépôt : [[16 - Outils en ligne de commande (cli & manage)]], [[24 - Catalogue des composants UI]], [[25 - Utilitaires frontend (api, cabinet, clients, exportPdf)]], [[26 - Pages secondaires & flux d'authentification]], [[42 - Conteneurs, images & exécution]], [[43 - Vestiges Render-Vercel & fichiers brouillons]], [[51 - Tests automatisés]], [[60 - Outillage du dépôt (assistant, règles, skills)]]) · Sources : **1** · Statut `a-verifier` : 3 ([[31 - Credentials Google OAuth (Sheets & Gmail)]], [[Écosystème Fingec]], [[60 - Outillage du dépôt (assistant, règles, skills)]] — secret à révoquer).
 - Frontmatter `type:` sur toutes les pages (requêtable via Dataview).
 - Commandes actives : `/ingest` · `/query` · `/save` · `/lint` (cf. [[CLAUDE]] §8).
