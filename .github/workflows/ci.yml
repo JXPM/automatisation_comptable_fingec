@@ -123,7 +123,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build de l'image frontend
-        run: docker build -f Dockerfile -t fingec-frontend:ci ./frontend
+        run: docker build -t fingec-frontend:ci ./frontend
 
   summary:
     name: Pipeline summary
