@@ -72,9 +72,18 @@ compétences** du titre :
 3. **Bloc 3 — Application :** une application complète, sécurisée, testée,
    déployée en continu et maintenue en production (`app.fingec.fr`).
 
-Le présent dossier valorise mes compétences **épreuve par épreuve** (E1 à E5), en
-m'appuyant systématiquement sur des réalisations concrètes, versionnées sur Git et
-vérifiables en ligne.
+Ces **trois blocs** sont **évalués à travers cinq épreuves** (E1 à E5) : le Bloc 1
+correspond à l'épreuve **E1** ; le Bloc 2 est évalué en **deux épreuves**, **E2**
+(veille et choix d'un service d'IA, C6-C8) et **E3** (développement, intégration et
+mise en production du modèle, C9-C13) ; le Bloc 3 l'est également en deux,
+**E4** (l'application, C14-C19) et **E5** (le monitorage applicatif et la
+résolution d'incident, C20-C21). C'est pourquoi le dossier comporte **cinq
+parties** correspondant aux cinq épreuves, qui couvrent ensemble les **trois
+blocs** et les **21 compétences** (C1 à C21).
+
+Le présent dossier valorise donc mes compétences **épreuve par épreuve** (E1 à
+E5), en m'appuyant systématiquement sur des réalisations concrètes, versionnées sur
+Git et vérifiables en ligne.
 
 ---
 
