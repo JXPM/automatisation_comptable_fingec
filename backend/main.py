@@ -20,6 +20,7 @@ import emailer
 import observability
 import password_policy
 import ratelimit
+import scraper
 from auth import get_current_user, require_admin
 from ai.api import router as ai_router
 from ai import store as ai_store
@@ -157,8 +158,13 @@ async def _reject_if_pwned(password: str) -> None:
 async def _startup() -> None:
     auth.init_db()
     ai_store.init_db()  # tables IA (journal des prédictions + feedback)
+    scraper.init_db()   # table des taux de change (scraping BCE)
     # Lance la purge de conservation en tâche de fond (1er passage immédiat).
     asyncio.create_task(_purge_loop())
+    # Rafraîchit les taux de change au démarrage puis chaque jour (best-effort).
+    # Désactivable (tests hermétiques : pas d'appel réseau).
+    if os.environ.get("RATES_AUTOREFRESH_ENABLED", "1") != "0":
+        asyncio.create_task(_rates_loop())
 
 UPLOAD_DIR = DATA_DIR / "tmp_upload"
 OUTPUT_DIR = DATA_DIR / "output"
@@ -703,6 +709,40 @@ async def put_assignment(payload: AssignmentPayload, _: dict = Depends(require_a
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "Attribution mise à jour."}
+
+
+# ── Taux de change (scraping BCE) ────────────────────────────────────────────
+async def _refresh_rates_once() -> dict | None:
+    """Scrape les taux et les stocke. Renvoie le payload, ou None en cas d'échec."""
+    try:
+        payload = await scraper.fetch_rates()
+        await asyncio.to_thread(scraper.save_rates, payload)
+        return payload
+    except (RuntimeError, ValueError) as e:
+        print(f"⚠️  Rafraîchissement des taux échoué : {e}", flush=True)
+        return None
+
+
+async def _rates_loop() -> None:
+    """Rafraîchit les taux au démarrage puis une fois par jour (best-effort)."""
+    while True:
+        await _refresh_rates_once()
+        await asyncio.sleep(24 * 60 * 60)
+
+
+@app.get("/api/rates")
+async def api_rates(_: dict = Depends(get_current_user)):
+    """Derniers taux de change connus (base EUR), issus du scraping BCE."""
+    return await asyncio.to_thread(scraper.latest_rates)
+
+
+@app.post("/api/rates/refresh")
+async def api_rates_refresh(_: dict = Depends(require_admin)):
+    """Force un scraping immédiat des taux (admin)."""
+    payload = await _refresh_rates_once()
+    if payload is None:
+        raise HTTPException(status_code=502, detail="Scraping des taux indisponible pour le moment.")
+    return {"message": "Taux mis à jour.", "date": payload["date"], "count": len(payload["rates"])}
 
 
 # ── Proxy n8n (authentifié) ──────────────────────────────────────────────────

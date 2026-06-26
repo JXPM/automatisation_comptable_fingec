@@ -18,6 +18,9 @@ _AI_TMP = tempfile.mkdtemp(prefix="fingec-ai-test-")
 os.environ.setdefault("AI_ARTIFACTS_DIR", _AI_TMP)
 os.environ.setdefault("AI_MODEL_PATH", str(Path(_AI_TMP) / "model.joblib"))
 
+# Tests hermétiques : pas de scraping réseau au démarrage de l'app.
+os.environ.setdefault("RATES_AUTOREFRESH_ENABLED", "0")
+
 import pandas as pd
 import pytest
 
