@@ -177,6 +177,15 @@ L'API **FastAPI** expose les données et traitements (`/process`, `/download`,
 `/api/clients`, `/api/rates`…), documentée automatiquement en **OpenAPI**
 (`/docs`), sécurisée par authentification et autorisation par rôle.
 
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E1.1 — Écran « Traitement » : import d'un
+> relevé TikTok/Shopify, score de fiabilité et journal Quadra généré.*
+> (À prendre sur `app.fingec.fr` → Traitement. Enregistrer en
+> `docs/images/e1-traitement.png` puis remplacer cette ligne par :
+> `![Écran Traitement](images/e1-traitement.png)`.)
+
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E1.2 — Documentation OpenAPI de l'API
+> (`app.fingec.fr/docs`).* (Fichier `docs/images/e1-openapi.png`.)
+
 **Livrable E1 :** rapport présentant le flux automatisé, les requêtes de
 nettoyage, la création de la base et l'exposition par API.
 
@@ -340,6 +349,9 @@ journal Quadra en partie double équilibrée — `journal.py`), de la **gestion 
 droits** (rôles admin/comptable, attribution des clients), et de la **sécurité**
 (httpOnly, JWT, OWASP).
 
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E4.1 — Vue d'ensemble de l'application
+> (barre de navigation + une page).* (Fichier `docs/images/e4-application.png`.)
+
 #### C18 — Tests automatisés du code
 Tests **backend (pytest)** et **end-to-end (Playwright)**, exécutés en **CI** à
 chaque push/PR.
@@ -348,6 +360,11 @@ chaque push/PR.
 Workflow `deploy.yml` : **gate de tests** → rsync vers le VPS →
 `docker compose up --build` → **healthcheck**. Déploiement automatique et
 reproductible.
+
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E4.2 — Pipeline CI multi-étapes
+> (GitHub → onglet Actions → un run « CI » → graphe des jobs : detect-changes,
+> backend, modèle IA, frontend, e2e, builds Docker, summary).* (Fichier
+> `docs/images/e4-pipeline-ci.png`.) C'est la **meilleure preuve de C18+C19+C13**.
 
 **Livrable E4 :** rapport + démonstration de l'application.
 
@@ -360,6 +377,9 @@ Dispositif : **CI** (tests à chaque push), **Sentry** (erreurs runtime),
 **Uptime Kuma** (disponibilité), **journalisation** (`observability.py`), et la
 **boucle de feedback** du modèle. Des **alertes** sont configurées (e-mail/push).
 
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E5.1 — Tableau de bord de monitoring
+> applicatif (Uptime Kuma ou Sentry).* (Fichier `docs/images/e5-monitoring.png`.)
+
 #### C21 — Résolution d'un incident
 **Incident réel** (détail dans `docs/DP-E5-incident.md`) : après la refonte de la
 page de connexion, **3 tests end-to-end** d'authentification ont échoué.
@@ -371,6 +391,9 @@ page de connexion, **3 tests end-to-end** d'authentification ont échoué.
 - **Vérification** : **6/6 tests au vert**, correctif **versionné** et **rejoué
   en CI** ; j'ai de plus **ajouté le job E2E au pipeline** pour prévenir la
   récidive.
+
+> 🖼️ **[CAPTURE À INSÉRER]** — *Figure E5.2 — Sortie des tests e2e au vert
+> (6/6) après correctif.* (Fichier `docs/images/e5-e2e-verts.png`.)
 
 **Livrable E5 :** documentation du monitorage et de la résolution de l'incident.
 

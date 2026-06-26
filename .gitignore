@@ -26,3 +26,6 @@ node_modules/
 # Modèle IA : artefact reproductible (régénéré par `python -m backend.ai.train`).
 # On versionne les métriques (metrics.json), pas le binaire.
 backend/ai/artifacts/*.joblib
+
+# DOCX généré (régénérable via docs/build-docx.sh)
+docs/*.docx
