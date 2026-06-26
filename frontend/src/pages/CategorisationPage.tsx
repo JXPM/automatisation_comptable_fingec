@@ -63,7 +63,7 @@ export default function CategorisationPage() {
   };
 
   return (
-    <div style={{ padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22, maxWidth: 1100 }}>
+    <div style={{ padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22, maxWidth: 1100, margin: "0 auto" }}>
       <PageHeader
         eyebrow="Intelligence artificielle"
         title="Catégorisation comptable"

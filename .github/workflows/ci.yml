@@ -6,53 +6,141 @@ on:
   pull_request:
     branches: [main]
 
+# Pipeline multi-étapes :
+#   changes ─┬─ backend (lint+tests) ──┐
+#            ├─ ai-model (train+eval) ─┼─ docker-backend ─┐
+#            └─ frontend (build) ──────┴─ docker-frontend ┴─ summary
+# Sur PR, seules les briques touchées tournent (detect-changes) ; sur push main,
+# tout tourne. La gate de déploiement reste dans deploy.yml.
+
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'Dockerfile.backend'
+            frontend:
+              - 'frontend/**'
+
   backend:
-    name: Backend (pytest)
+    name: Backend · lint & tests
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest ruff
+      - name: Lint (ruff, non bloquant)
+        run: ruff check . || true
+      - name: Tests (pytest)
+        run: pytest -q
 
+  ai-model:
+    name: Modèle IA · entraînement & métriques
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
-
-      - name: Run tests
-        run: pytest -v
+      - name: Entraîner et vérifier le seuil de qualité
+        run: |
+          python -m ai.train
+          python - <<'PY'
+          import json
+          m = json.load(open("ai/artifacts/metrics.json"))
+          print("holdout(inédits) =", m["holdout_accuracy"], "| f1_macro =", m["f1_macro"])
+          assert m["holdout_accuracy"] >= 0.75, f"Régression modèle : {m['holdout_accuracy']}"
+          PY
 
   frontend:
-    name: Frontend (typecheck + build)
+    name: Frontend · lint, typecheck & build
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Build
+      - name: Lint (eslint, non bloquant)
+        run: npx eslint . || true
+      - name: Type check & build
         run: npm run build
+
+  docker-backend:
+    name: Docker · backend
+    needs: [backend, ai-model]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build de l'image backend (entraîne le modèle au build)
+        run: docker build -f Dockerfile.backend -t fingec-backend:ci .
+
+  docker-frontend:
+    name: Docker · frontend
+    needs: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build de l'image frontend
+        run: docker build -f Dockerfile -t fingec-frontend:ci ./frontend
+
+  summary:
+    name: Pipeline summary
+    needs: [backend, ai-model, frontend, docker-backend, docker-frontend]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récapitulatif
+        run: |
+          echo "Backend ......... ${{ needs.backend.result }}"
+          echo "Modele IA ....... ${{ needs.ai-model.result }}"
+          echo "Frontend ........ ${{ needs.frontend.result }}"
+          echo "Docker backend .. ${{ needs.docker-backend.result }}"
+          echo "Docker frontend . ${{ needs.docker-frontend.result }}"
+          for r in "${{ needs.backend.result }}" "${{ needs.ai-model.result }}" \
+                   "${{ needs.frontend.result }}" "${{ needs.docker-backend.result }}" \
+                   "${{ needs.docker-frontend.result }}"; do
+            if [ "$r" = "failure" ]; then echo "::error::Une etape a echoue"; exit 1; fi
+          done
+          echo "Pipeline OK"

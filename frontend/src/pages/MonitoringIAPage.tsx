@@ -46,7 +46,7 @@ export default function MonitoringIAPage() {
   const maxCat = Math.max(1, ...data.per_category.map((c) => c.count));
 
   return (
-    <div style={{ padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22, maxWidth: 1100 }}>
+    <div style={{ padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22, maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
         <PageHeader
           eyebrow="Intelligence artificielle"

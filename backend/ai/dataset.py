@@ -30,17 +30,27 @@ SEED_PHRASES: dict[str, list[str]] = {
         "order amount", "product sales", "sale", "order", "vente de marchandises",
         "ventes nettes", "montant de la commande", "chiffre d'affaires",
         "seller discounts", "platform discounts", "co-funded voucher discount",
+        # Français
+        "vente de produits", "ventes de marchandises", "vente en ligne",
+        "produit vendu", "encaissement vente", "recette", "commande client",
     ],
     "port": [
         "shipping", "customer shipping fee", "tiktok shop shipping fee",
         "fulfilled by tiktok shop shipping fee", "customer-paid shipping fee before discounts",
         "shipping subsidy", "shipping label", "shipping rate", "delivery fee",
         "frais de port", "frais de livraison", "shipping fee discount",
+        # Français
+        "livraison", "livraison colis", "frais d'expédition", "expédition",
+        "frais de transport", "port et emballage", "colissimo", "frais postaux",
     ],
     "commission": [
         "tiktok shop commission fee", "commission fee", "marketplace commission",
         "platform commission", "transaction fee", "shopify payments fee",
         "selling fee", "commission plateforme", "commission marketplace",
+        # Français
+        "commission", "commission de vente", "frais de commission",
+        "commission sur ventes", "commission tiktok", "commission shopify",
+        "frais de transaction", "frais plateforme",
     ],
     "publicite": [
         "affiliate commission", "affiliate partner commission",
@@ -48,26 +58,45 @@ SEED_PHRASES: dict[str, list[str]] = {
         "smart promotion fee", "campaign service fee", "co-funded promotion seller funded",
         "shopify ads", "google ads", "meta ads", "creator ads fee", "sponsored ads",
         "frais d'affiliation", "frais de publicité", "promotion", "marketing fee",
+        # Français
+        "publicité", "frais de marketing", "frais de promotion", "campagne publicitaire",
+        "frais d'affiliation créateur", "frais de campagne", "annonces sponsorisées",
+        "frais de partenariat",
     ],
     "services": [
         "epr pay on behalf service fee", "fulfilment service fee", "logistics fee",
         "handling fee", "warehouse fee", "processing fee", "service fee",
         "frais de service", "frais logistiques", "frais de traitement",
+        # Français
+        "frais de gestion", "frais de manutention", "frais de stockage",
+        "frais d'entreposage", "prestation de service", "frais de préparation",
+        "frais EPR", "frais de fulfilment",
     ],
     "taxes": [
         "tax and duty", "smart promotion fee tax", "import duty", "customs duty",
         "vat", "sales tax", "tax", "tva", "taxe", "droits de douane", "duty",
+        # Français
+        "taxe sur la vente", "tva collectée", "tva déductible", "taxe et droits",
+        "droits d'importation", "taxe sur les ventes", "prélèvement fiscal",
     ],
     "remboursement": [
         "refund subtotal before seller discounts", "refund of seller discounts",
         "customer refund", "refunded customer shipping fee", "affiliate commission refund",
         "chargeback", "return", "refund", "remboursement", "avoir", "retour client",
         "actual return shipping fee",
+        # Français
+        "remboursement client", "remboursement commande", "avoir client",
+        "retour produit", "remboursement de port", "annulation de commande",
+        "rétrofacturation", "remboursement de commission",
     ],
     "ajustement": [
         "adjustment amount", "adjustment", "manual adjustment", "correction",
         "balance adjustment", "ajustement", "régularisation", "écart de relevé",
         "other", "divers", "à classer", "misc",
+        # Français
+        "ajustement de solde", "correction manuelle", "régularisation comptable",
+        "écart de rapprochement", "divers à classer", "opération diverse",
+        "écart de caisse",
     ],
 }
 

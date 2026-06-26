@@ -1,11 +1,11 @@
 {
   "model_version": "1.0.0",
-  "trained_at": "2026-06-26T10:36:59+00:00",
+  "trained_at": "2026-06-26T11:09:31+00:00",
   "seed": 42,
-  "n_samples": 813,
+  "n_samples": 1334,
   "n_feedback": 0,
-  "n_train": 640,
-  "n_test": 173,
+  "n_train": 1068,
+  "n_test": 266,
   "categories": [
     "ventes",
     "port",
@@ -16,82 +16,87 @@
     "remboursement",
     "ajustement"
   ],
-  "accuracy": 0.7399,
-  "f1_macro": 0.5883,
-  "holdout_accuracy": 0.875,
+  "accuracy": 0.7744,
+  "f1_macro": 0.7945,
+  "holdout_accuracy": 0.8125,
   "holdout_errors": [
     {
-      "text": "sponsored product placement cost",
-      "expected": "publicite",
-      "predicted": "ventes"
+      "text": "parcel delivery charge",
+      "expected": "port",
+      "predicted": "remboursement"
     },
     {
       "text": "last-mile courier fee",
       "expected": "port",
       "predicted": "services"
+    },
+    {
+      "text": "misc reconciliation entry",
+      "expected": "ajustement",
+      "predicted": "publicite"
     }
   ],
   "per_class": {
     "ventes": {
-      "precision": 0.7647058823529411,
-      "recall": 0.7428571428571429,
-      "f1-score": 0.7536231884057971,
-      "support": 35.0
+      "precision": 0.75,
+      "recall": 0.8048780487804879,
+      "f1-score": 0.7764705882352941,
+      "support": 41.0
     },
     "port": {
-      "precision": 0.8846153846153846,
-      "recall": 1.0,
-      "f1-score": 0.9387755102040817,
-      "support": 23.0
+      "precision": 0.6666666666666666,
+      "recall": 0.75,
+      "f1-score": 0.7058823529411765,
+      "support": 32.0
     },
     "commission": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1-score": 0.0,
-      "support": 12.0
+      "precision": 0.9166666666666666,
+      "recall": 1.0,
+      "f1-score": 0.9565217391304348,
+      "support": 22.0
     },
     "publicite": {
-      "precision": 0.9166666666666666,
-      "recall": 0.6470588235294118,
-      "f1-score": 0.7586206896551724,
-      "support": 34.0
+      "precision": 0.5957446808510638,
+      "recall": 0.9655172413793104,
+      "f1-score": 0.7368421052631579,
+      "support": 29.0
     },
     "services": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1-score": 0.0,
-      "support": 0.0
+      "precision": 0.6818181818181818,
+      "recall": 0.375,
+      "f1-score": 0.4838709677419355,
+      "support": 40.0
     },
     "taxes": {
-      "precision": 0.7619047619047619,
+      "precision": 1.0,
       "recall": 1.0,
-      "f1-score": 0.8648648648648649,
-      "support": 16.0
+      "f1-score": 1.0,
+      "support": 8.0
     },
     "remboursement": {
-      "precision": 0.8717948717948718,
-      "recall": 0.8717948717948718,
-      "f1-score": 0.8717948717948718,
-      "support": 39.0
+      "precision": 0.813953488372093,
+      "recall": 0.8536585365853658,
+      "f1-score": 0.8333333333333334,
+      "support": 41.0
     },
     "ajustement": {
-      "precision": 0.5384615384615384,
-      "recall": 0.5,
-      "f1-score": 0.5185185185185185,
-      "support": 14.0
+      "precision": 0.9761904761904762,
+      "recall": 0.7735849056603774,
+      "f1-score": 0.8631578947368421,
+      "support": 53.0
     },
-    "accuracy": 0.7398843930635838,
+    "accuracy": 0.7744360902255639,
     "macro avg": {
-      "precision": 0.5922686382245206,
-      "recall": 0.5952138547726783,
-      "f1-score": 0.5882747054304133,
-      "support": 173.0
+      "precision": 0.8001300200706434,
+      "recall": 0.8153298415506927,
+      "f1-score": 0.7945098726727717,
+      "support": 266.0
     },
     "weighted avg": {
-      "precision": 0.7630431452260762,
-      "recall": 0.7398843930635838,
-      "f1-score": 0.7448488374235245,
-      "support": 173.0
+      "precision": 0.7891335010479668,
+      "recall": 0.7744360902255639,
+      "f1-score": 0.7673094079799345,
+      "support": 266.0
     }
   },
   "confusion_matrix": {
@@ -107,84 +112,84 @@
     ],
     "matrix": [
       [
-        26,
-        3,
-        0,
-        1,
-        4,
+        33,
         0,
         0,
+        0,
+        0,
+        0,
+        7,
         1
       ],
       [
         0,
-        23,
+        24,
+        1,
         0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        0,
-        12,
+        7,
         0,
         0,
         0
       ],
       [
-        2,
         0,
         0,
         22,
         0,
-        5,
-        5,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        0,
         0,
         0,
         0,
         0
       ],
       [
+        1,
         0,
         0,
+        28,
         0,
         0,
-        0,
-        16,
         0,
         0
       ],
       [
         0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        34,
-        5
-      ],
-      [
         6,
         0,
+        19,
+        15,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        35,
+        0
+      ],
+      [
+        10,
         0,
         1,
         0,
         0,
         0,
-        7
+        1,
+        41
       ]
     ]
   },
