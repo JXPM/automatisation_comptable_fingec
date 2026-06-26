@@ -107,6 +107,28 @@ jobs:
       - name: Type check & build
         run: npm run build
 
+  e2e:
+    name: E2E · Playwright
+    needs: [changes, frontend]
+    if: ${{ needs.changes.outputs.frontend == 'true' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+      - name: Tests end-to-end
+        run: npx playwright test --project=chromium
+
   docker-backend:
     name: Docker · backend
     needs: [backend, ai-model]
@@ -127,7 +149,7 @@ jobs:
 
   summary:
     name: Pipeline summary
-    needs: [backend, ai-model, frontend, docker-backend, docker-frontend]
+    needs: [backend, ai-model, frontend, e2e, docker-backend, docker-frontend]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
@@ -136,11 +158,12 @@ jobs:
           echo "Backend ......... ${{ needs.backend.result }}"
           echo "Modele IA ....... ${{ needs.ai-model.result }}"
           echo "Frontend ........ ${{ needs.frontend.result }}"
+          echo "E2E ............. ${{ needs.e2e.result }}"
           echo "Docker backend .. ${{ needs.docker-backend.result }}"
           echo "Docker frontend . ${{ needs.docker-frontend.result }}"
           for r in "${{ needs.backend.result }}" "${{ needs.ai-model.result }}" \
-                   "${{ needs.frontend.result }}" "${{ needs.docker-backend.result }}" \
-                   "${{ needs.docker-frontend.result }}"; do
+                   "${{ needs.frontend.result }}" "${{ needs.e2e.result }}" \
+                   "${{ needs.docker-backend.result }}" "${{ needs.docker-frontend.result }}"; do
             if [ "$r" = "failure" ]; then echo "::error::Une etape a echoue"; exit 1; fi
           done
           echo "Pipeline OK"

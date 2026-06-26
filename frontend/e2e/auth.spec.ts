@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
 
 test("la page de connexion affiche le lien « mot de passe oublié »", async ({ page }) => {
   await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /bon retour/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /mot de passe oublié/i })).toBeVisible();
 });
 
@@ -52,7 +52,7 @@ test("réinitialisation : lien valide permet de définir un mot de passe", async
   await page.goto("/reset-password?token=bon");
   await expect(page.getByText("Compte : u@fingec.fr")).toBeVisible();
 
-  await page.getByPlaceholder("Au moins 8 caractères").fill("nouveau-mdp-1");
+  await page.getByPlaceholder("Au moins 12 caractères").fill("nouveau-mdp-1");
   await page.getByPlaceholder("••••••••").fill("nouveau-mdp-1");
   await page.getByRole("button", { name: /enregistrer le mot de passe/i }).click();
 
@@ -64,7 +64,7 @@ test("réinitialisation : mots de passe différents bloquent l'envoi", async ({ 
     route.fulfill({ status: 200, json: { email: "u@fingec.fr", purpose: "reset" } }),
   );
   await page.goto("/reset-password?token=bon");
-  await page.getByPlaceholder("Au moins 8 caractères").fill("motdepasse-1");
+  await page.getByPlaceholder("Au moins 12 caractères").fill("motdepasse-1");
   await page.getByPlaceholder("••••••••").fill("different-99");
   await page.getByRole("button", { name: /enregistrer le mot de passe/i }).click();
   await expect(page.getByText(/ne correspondent pas/i)).toBeVisible();
