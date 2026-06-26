@@ -148,8 +148,12 @@ L'application s'inscrit dans l'architecture suivante :
 - **Observabilité** : **Sentry** (erreurs), **Uptime Kuma** (disponibilité),
   journalisation applicative.
 
-> 🖼️ **[CAPTURE À INSÉRER]** — *Figure 2.1 — Schéma d'architecture du système
-> d'information.* (À dessiner ; fichier `docs/images/architecture.png`.)
+![Architecture du système d'information de Fingec](images/architecture.png)
+*Figure 2.1 — Architecture du système d'information : navigateur → Caddy (HTTPS)
+→ frontend React et backend FastAPI (API REST, authentification, modèle IA,
+scraping), base SQLite, orchestration n8n (Google Sheets, Gmail) et scraping des
+taux BCE ; le tout conteneurisé sur un VPS, avec CI/CD GitHub Actions et
+observabilité (Sentry, Uptime Kuma).*
 
 ### 2.5 Méthodologie de travail
 
