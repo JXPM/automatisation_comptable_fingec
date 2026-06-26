@@ -11,6 +11,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Code applicatif (backend uniquement)
 COPY backend/ ./
 
+# Packaging du modèle IA : entraînement au build pour que l'image embarque un
+# artefact versionné et reproductible (le binaire n'est pas dans Git). Étape de
+# la chaîne de livraison du modèle (MLOps).
+RUN python -m ai.train
+
 # Données persistantes (logs.json, uploads temporaires, exports) — volume monté par compose.
 RUN mkdir -p /data
 ENV BACKEND_DATA_DIR=/data

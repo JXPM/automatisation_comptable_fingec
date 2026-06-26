@@ -21,6 +21,8 @@ import observability
 import password_policy
 import ratelimit
 from auth import get_current_user, require_admin
+from ai.api import router as ai_router
+from ai import store as ai_store
 
 # Initialise Sentry au plus tôt (avant la création de l'app) si SENTRY_DSN est
 # défini ; no-op sinon. Capture les exceptions non gérées des endpoints.
@@ -87,6 +89,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Routeur de la brique IA (catégorisation comptable) sous /api/ai.
+app.include_router(ai_router)
+
 
 # ── Cookie de session & limites anti-bruteforce ──────────────────────────────
 # Le jeton de session est posé dans un cookie httpOnly + Secure : inaccessible au
@@ -151,6 +156,7 @@ async def _reject_if_pwned(password: str) -> None:
 @app.on_event("startup")
 async def _startup() -> None:
     auth.init_db()
+    ai_store.init_db()  # tables IA (journal des prédictions + feedback)
     # Lance la purge de conservation en tâche de fond (1er passage immédiat).
     asyncio.create_task(_purge_loop())
 

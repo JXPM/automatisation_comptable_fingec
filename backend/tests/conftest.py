@@ -1,7 +1,9 @@
 """Shared fixtures for backend tests."""
 from __future__ import annotations
 
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 # Make `backend/` importable as a package root so tests can `from processor import ...`
@@ -9,8 +11,27 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
+# Artefacts du modèle IA dans un dossier temporaire (régénérés à chaque session :
+# le binaire n'est pas versionné). À définir AVANT tout import de `ai.*` pour que
+# `ai.train`/`ai.model` lisent les bons chemins.
+_AI_TMP = tempfile.mkdtemp(prefix="fingec-ai-test-")
+os.environ.setdefault("AI_ARTIFACTS_DIR", _AI_TMP)
+os.environ.setdefault("AI_MODEL_PATH", str(Path(_AI_TMP) / "model.joblib"))
+
 import pandas as pd
 import pytest
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _trained_ai_model():
+    """Entraîne le modèle de catégorisation une fois pour toute la session.
+
+    Exerce le pipeline complet (dataset → entraînement → sérialisation) et rend
+    l'artefact disponible pour les tests d'inférence et d'API.
+    """
+    from ai.train import train
+    train()
+    yield
 
 
 @pytest.fixture

@@ -1,0 +1,192 @@
+{
+  "model_version": "1.0.0",
+  "trained_at": "2026-06-26T10:36:59+00:00",
+  "seed": 42,
+  "n_samples": 813,
+  "n_feedback": 0,
+  "n_train": 640,
+  "n_test": 173,
+  "categories": [
+    "ventes",
+    "port",
+    "commission",
+    "publicite",
+    "services",
+    "taxes",
+    "remboursement",
+    "ajustement"
+  ],
+  "accuracy": 0.7399,
+  "f1_macro": 0.5883,
+  "holdout_accuracy": 0.875,
+  "holdout_errors": [
+    {
+      "text": "sponsored product placement cost",
+      "expected": "publicite",
+      "predicted": "ventes"
+    },
+    {
+      "text": "last-mile courier fee",
+      "expected": "port",
+      "predicted": "services"
+    }
+  ],
+  "per_class": {
+    "ventes": {
+      "precision": 0.7647058823529411,
+      "recall": 0.7428571428571429,
+      "f1-score": 0.7536231884057971,
+      "support": 35.0
+    },
+    "port": {
+      "precision": 0.8846153846153846,
+      "recall": 1.0,
+      "f1-score": 0.9387755102040817,
+      "support": 23.0
+    },
+    "commission": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 12.0
+    },
+    "publicite": {
+      "precision": 0.9166666666666666,
+      "recall": 0.6470588235294118,
+      "f1-score": 0.7586206896551724,
+      "support": 34.0
+    },
+    "services": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "taxes": {
+      "precision": 0.7619047619047619,
+      "recall": 1.0,
+      "f1-score": 0.8648648648648649,
+      "support": 16.0
+    },
+    "remboursement": {
+      "precision": 0.8717948717948718,
+      "recall": 0.8717948717948718,
+      "f1-score": 0.8717948717948718,
+      "support": 39.0
+    },
+    "ajustement": {
+      "precision": 0.5384615384615384,
+      "recall": 0.5,
+      "f1-score": 0.5185185185185185,
+      "support": 14.0
+    },
+    "accuracy": 0.7398843930635838,
+    "macro avg": {
+      "precision": 0.5922686382245206,
+      "recall": 0.5952138547726783,
+      "f1-score": 0.5882747054304133,
+      "support": 173.0
+    },
+    "weighted avg": {
+      "precision": 0.7630431452260762,
+      "recall": 0.7398843930635838,
+      "f1-score": 0.7448488374235245,
+      "support": 173.0
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "ventes",
+      "port",
+      "commission",
+      "publicite",
+      "services",
+      "taxes",
+      "remboursement",
+      "ajustement"
+    ],
+    "matrix": [
+      [
+        26,
+        3,
+        0,
+        1,
+        4,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        23,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        12,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        22,
+        0,
+        5,
+        5,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        34,
+        5
+      ],
+      [
+        6,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        7
+      ]
+    ]
+  },
+  "python": "3.10.12"
+}

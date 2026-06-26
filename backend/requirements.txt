@@ -8,3 +8,6 @@ bcrypt
 httpx
 pydantic[email]
 sentry-sdk[fastapi]
+scikit-learn
+joblib
+numpy

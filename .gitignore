@@ -22,3 +22,7 @@ backend/output/
 # Frontend build
 frontend/dist/
 node_modules/
+
+# Modèle IA : artefact reproductible (régénéré par `python -m backend.ai.train`).
+# On versionne les métriques (metrics.json), pas le binaire.
+backend/ai/artifacts/*.joblib

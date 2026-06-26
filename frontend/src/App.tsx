@@ -9,6 +9,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AccountPage from "./pages/AccountPage";
 import TraitementPage from "./pages/TraitementPage";
+import CategorisationPage from "./pages/CategorisationPage";
+import MonitoringIAPage from "./pages/MonitoringIAPage";
 import ClientsPage from "./pages/ClientsPage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoriquePage from "./pages/HistoriquePage";
@@ -48,6 +50,15 @@ export default function App() {
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/traitement" element={<TraitementPage />} />
+              <Route path="/categorisation" element={<CategorisationPage />} />
+              <Route
+                path="/monitoring-ia"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <MonitoringIAPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/compte" element={<AccountPage />} />
               <Route path="/clients" element={<ClientsPage />} />
               <Route path="/historique" element={<HistoriquePage />} />

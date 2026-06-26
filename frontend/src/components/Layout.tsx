@@ -18,6 +18,17 @@ const ADMIN_NAV = {
   ),
 };
 
+const MONITORING_NAV = {
+  to: "/monitoring-ia",
+  label: "Monitorage IA",
+  icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18"/>
+      <path d="M7 14l3-4 4 3 4-6"/>
+    </svg>
+  ),
+};
+
 const NAV = [
   {
     to: "/",
@@ -38,6 +49,16 @@ const NAV = [
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="17 8 12 3 7 8"/>
         <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    ),
+  },
+  {
+    to: "/categorisation",
+    label: "Catégorisation IA",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 0 6 3 3 0 0 0 3 3 3 3 0 0 0 6 0 3 3 0 0 0 3-3 3 3 0 0 0 0-6 3 3 0 0 0-3-3 3 3 0 0 0-3-3z"/>
+        <path d="M12 5v14M9 8h6M8 11h8M9 16h6"/>
       </svg>
     ),
   },
@@ -92,7 +113,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { user } = useAuth();
-  const navItems = user?.role === "admin" ? [...NAV, ADMIN_NAV] : NAV;
+  const navItems = user?.role === "admin" ? [...NAV, MONITORING_NAV, ADMIN_NAV] : NAV;
   const showWatermark = WATERMARK_ROUTES.some((r) =>
     r === "/" ? location.pathname === "/" : location.pathname.startsWith(r)
   );
