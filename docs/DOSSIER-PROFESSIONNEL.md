@@ -244,6 +244,26 @@ avec un **score de confiance**, et renvoie en **revue humaine** les cas peu sûr
   revoir » + alternatives ; face à l'inconnu, le modèle **signale** au lieu
   d'inventer.
 
+**Résultats mesurés** (jeu de test par groupe) : accuracy **0,77**, F1 macro
+**0,79**, exactitude sur libellés inédits (holdout) **0,81**. Matrice de
+confusion (lignes = classe réelle, colonnes = classe prédite) :
+
+| réel \ prédit | Vent | Port | Comm | Pub | Serv | Tax | Remb | Ajus |
+|---|---|---|---|---|---|---|---|---|
+| **Ventes** | 33 | 0 | 0 | 0 | 0 | 0 | 7 | 1 |
+| **Port** | 0 | 24 | 1 | 0 | 7 | 0 | 0 | 0 |
+| **Commission** | 0 | 0 | 22 | 0 | 0 | 0 | 0 | 0 |
+| **Publicité** | 1 | 0 | 0 | 28 | 0 | 0 | 0 | 0 |
+| **Services** | 0 | 6 | 0 | 19 | 15 | 0 | 0 | 0 |
+| **Taxes** | 0 | 0 | 0 | 0 | 0 | 8 | 0 | 0 |
+| **Remboursement** | 0 | 6 | 0 | 0 | 0 | 0 | 35 | 0 |
+| **Ajustement** | 10 | 0 | 1 | 0 | 0 | 0 | 1 | 41 |
+
+> Lecture : la diagonale (bonnes prédictions) domine. Les confusions résiduelles
+> sont **interprétables** (ex. « Services » parfois pris pour « Publicité »,
+> libellés proches) — d'où l'intérêt du **seuil de revue** qui renvoie ces cas au
+> comptable. *(À reformuler et commenter en soutenance.)*
+
 #### C9 — API REST du modèle
 Routeur `/api/ai` (`ai/api.py`) : `categorize`, `categorize-batch`, `feedback`,
 `categories`, doc **OpenAPI**, sécurité **OWASP API** (authentification
@@ -252,13 +272,21 @@ obligatoire, taille des entrées bornée, erreurs 401/422/503 propres).
 #### C10 — Intégration dans l'application
 Écran **« Catégorisation IA »** (React) : l'utilisateur saisit des libellés et
 obtient pour chacun le compte proposé, une barre de **confiance**, et peut
-**corriger** via un menu (voir captures en annexe).
+**corriger** via un menu.
+
+![Écran Catégorisation IA : prédictions, score de confiance et colonne de correction](images/e3-categorisation-ia.png)
+*Figure 1 — Écran « Catégorisation IA » : pour chaque libellé, le compte Quadra
+proposé, le score de confiance et la possibilité de corriger (boucle de feedback).*
 
 #### C11 — Monitorage du modèle
 **Tableau de bord « Monitorage IA »** (admin) : volume de prédictions, confiance
 moyenne, **taux de revue**, histogramme de confiance, **dérive** (confiance
 moyenne par jour), nombre de corrections. Chaque prédiction est **journalisée**
 (`ai/store.py`). C'est le « vecteur de restitution des métriques » attendu.
+
+![Tableau de bord Monitorage IA : KPI, histogramme de confiance, répartition par catégorie](images/e3-monitorage-ia.png)
+*Figure 2 — Tableau de bord « Monitorage IA » (admin) : volume, confiance
+moyenne, taux de revue, distribution de la confiance et répartition par compte.*
 
 #### C12 — Tests automatisés
 **19 tests** (`tests/test_ai_model.py`, `tests/test_ai_api.py`) : reproductibilité
@@ -270,6 +298,10 @@ réentraînement. Suite backend totale : **121 tests verts**.
 - **Boucle de feedback** : les corrections du comptable sont stockées puis
   **réinjectées au réentraînement** (`/api/ai/retrain`, rechargement à chaud).
   Mesuré : une correction a fait progresser le holdout (0,875 → 0,9375).
+
+  ![Réentraînement du modèle sur le feedback depuis le tableau de bord](images/e3-reentrainement.png)
+  *Figure 3 — Réentraînement du modèle sur les corrections, déclenché depuis le
+  tableau de bord ; les nouvelles métriques sont affichées après l'opération.*
 - **Packaging** : le modèle est **entraîné au build de l'image Docker**
   (`RUN python -m ai.train`) → artefact versionné et reproductible.
 - **CI/CD** : pipeline GitHub Actions multi-étapes (lint, tests, **entraînement +
@@ -360,13 +392,23 @@ page de connexion, **3 tests end-to-end** d'authentification ont échoué.
 
 ## 5. Annexes
 
-- Schéma d'architecture du SI.
-- MCD / MPD Merise.
-- Captures : écran Catégorisation IA, tableau de bord Monitorage IA.
+- Schéma d'architecture du SI. *(à dessiner)*
+- MCD / MPD Merise (cf. `DP-modele-donnees-merise.md`).
+- Captures **déjà intégrées** dans E3 : Catégorisation IA (Figure 1), Monitorage
+  IA (Figure 2), Réentraînement (Figure 3) — fichiers dans `docs/images/`.
+- Matrice de confusion du modèle (intégrée dans E3) + `metrics.json`.
 - Extraits de code clés (modèle, API, scraping).
-- Métriques du modèle (`metrics.json`), matrice de confusion.
-- Pipeline CI/CD (capture du graphe GitHub Actions).
 - Liens : dépôt GitHub, application `app.fingec.fr`.
+
+> **Captures qu'il te reste à prendre toi-même** (depuis le site live `app.fingec.fr`,
+> connecté en admin, et depuis GitHub) — pour illustrer les autres épreuves :
+> - **E1** : écran « Traitement » (import d'un relevé + score de fiabilité + journal Quadra).
+> - **E3/E9** : page de doc **OpenAPI** `app.fingec.fr/docs` (le contrat de l'API).
+> - **E3/C13 + E4** : le **graphe du pipeline CI** (onglet Actions → un run « CI » →
+>   capture du graphe des jobs) et le **run de déploiement**.
+> - **E4** : vue d'ensemble de l'app (sidebar + une page).
+> - **E5** : tableau de bord de monitoring (Uptime Kuma / Sentry) et la sortie
+>   verte des 6 tests e2e.
 
 ---
 
