@@ -266,8 +266,15 @@ J'ai modélisé la base selon la méthode **Merise** :
   `password_tokens`, `ai_predictions`, `ai_feedback`, `exchange_rates`, avec clés
   primaires, contraintes d'unicité et liens.
 
-Le détail (diagramme entité-association, types, choix techniques) figure en
-**annexe** (et dans `docs/DP-modele-donnees-merise.md`).
+Le modèle physique est représenté ci-dessous ; le détail (cardinalités, types,
+choix techniques) figure également dans `docs/DP-modele-donnees-merise.md`.
+
+![Modèle de données Merise (MPD) de Fingec](images/merise.png)
+*Figure E1.3 — Modèle physique des données (Merise/MPD) : la table `users` est au
+centre ; un utilisateur possède des jetons (`password_tokens`), se voit attribuer
+des clients (`client_assignments`) et génère des prédictions/corrections
+(`ai_predictions`, `ai_feedback`, liens logiques par e-mail) ; `exchange_rates`
+stocke les taux scrapés. (PK) = clé primaire, (FK) = clé étrangère.*
 
 **Conformité RGPD :** les mots de passe sont hachés (**bcrypt**) et les jetons ne
 sont jamais stockés en clair (**SHA-256**) ; une **purge automatique** quotidienne
